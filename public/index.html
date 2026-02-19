@@ -1,1 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freedom Messenger</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #0e1621; --bg-panel: #17212b; --bg-chat: #0e1621;
+            --text-main: #ffffff; --text-muted: #7f91a4; --accent: #2b5278;
+            --accent-hover: #3e6a96; --message-in: #182533; --message-out: #2b5278;
+            --border: #101921; --success: #3390ec; --danger: #e64a4a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* САЙДБАР */
+        .sidebar { width: 350px; background-color: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 15px; display: flex; align-items: center; gap: 15px; }
+        .search-bar { flex: 1; background-color: var(--bg-dark); border: none; border-radius: 20px; padding: 10px 15px; color: var(--text-main); outline: none; }
+        
+        /* ЧАТ */
+        .chat-area { flex: 1; display: flex; flex-direction: column; position: relative; }
+        .chat-header { background-color: var(--bg-panel); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        .header-info h2 { font-size: 16px; font-weight: 600; }
+        .header-info span { font-size: 13px; color: var(--success); }
+        
+        .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover; }
+        
+        /* СООБЩЕНИЯ */
+        .message { max-width: 70%; padding: 8px 12px; border-radius: 12px; position: relative; font-size: 15px; color: #fff; word-wrap: break-word; }
+        .msg-author { font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #3390ec; display: block; }
+        .message.in { background-color: var(--message-in); align-self: flex-start; border-bottom-left-radius: 2px; }
+        .message.out { background-color: var(--message-out); align-self: flex-end; border-bottom-right-radius: 2px; }
+        
+        /* ВВОД */
+        .input-area { background-color: var(--bg-panel); padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
+        .input-field { flex: 1; background: var(--bg-dark); border: none; padding: 12px 18px; border-radius: 22px; color: #fff; outline: none; }
+        
+        /* МОДАЛКА НАСТРОЕК */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; }
+        .modal-content { background: var(--bg-panel); width: 400px; border-radius: 15px; overflow: hidden; }
+        .settings-list { padding: 20px; }
+        .s-item { margin-bottom: 15px; }
+        .s-item label { display: block; font-size: 12px; color: var(--success); margin-bottom: 5px; text-transform: uppercase; }
+        .s-item input { width: 100%; background: var(--bg-dark); border: 1px solid var(--border); padding: 10px; color: #fff; border-radius: 8px; outline: none; }
+
+        .btn-icon { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 50%; display: flex; align-items: center; }
+        svg { fill: var(--text-muted); width: 24px; height: 24px; }
+        .rec-active { fill: var(--danger) !important; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <button class="btn-icon" onclick="toggleModal(true)">
+                <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+            </button>
+            <input type="text" class="search-bar" placeholder="Поиск">
+        </div>
+        <div style="padding: 20px; color: var(--text-muted); font-size: 13px; text-align: center;">
+            Freedom Messenger<br>Сквозное шифрование включено
+        </div>
+    </div>
+
+    <div class="chat-area">
+        <div class="chat-header">
+            <div class="header-info">
+                <h2>Freedom Global Chat</h2>
+                <span id="netStatus">подключение...</span>
+            </div>
+        </div>
+
+        <div class="messages" id="msgBox"></div>
+
+        <div class="input-area">
+            <input type="text" id="msgInput" class="input-field" placeholder="Написать сообщение...">
+            <button class="btn-icon" id="sendBtn" style="display:none" onclick="sendMsg()">
+                <svg style="fill:var(--success)" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+            <button class="btn-icon" id="micBtn" onclick="toggleMic()">
+                <svg id="micIcon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div style="padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+                <h3>Настройки</h3>
+                <button onclick="toggleModal(false)" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button>
+            </div>
+            <div class="settings-list">
+                <div class="s-item">
+                    <label>Ваш ник</label>
+                    <input type="text" id="nickInp" placeholder="Напр. Pavel">
+                </div>
+                <div class="s-item">
+                    <label>Ключ шифрования (AES)</label>
+                    <input type="password" id="cryptoInp" placeholder="Секретный код">
+                </div>
+                <button onclick="saveSettings()" style="width:100%; padding:12px; background:var(--success); border:none; color:#fff; border-radius:8px; cursor:pointer; font-weight:bold;">СОХРАНИТЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ТВОЯ НОВАЯ ССЫЛКА
+        const SERVER_URL = 'https://hdjdwldlckkc-production.up.railway.app';
+        const socket = io(SERVER_URL);
+        
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+
+        // Логика шифрования
+        const getSecret = () => document.getElementById('cryptoInp').value || 'default_freedom_key';
+        const encrypt = (text) => CryptoJS.AES.encrypt(text, getSecret()).toString();
+        const decrypt = (cipher) => {
+            try {
+                const bytes = CryptoJS.AES.decrypt(cipher, getSecret());
+                return bytes.toString(CryptoJS.enc.Utf8) || "🔒 Зашифровано (неверный ключ)";
+            } catch(e) { return "🔒 Зашифровано"; }
+        };
+
+        socket.on('connect', () => {
+            document.getElementById('netStatus').textContent = 'в сети';
+        });
+
+        socket.on('chat message', (data) => {
+            const text = decrypt(data.text);
+            renderMsg(text, 'in', data.nick, data.isAudio);
+        });
+
+        const msgInp = document.getElementById('msgInput');
+        msgInp.oninput = () => {
+            const hasVal = msgInp.value.trim() !== "";
+            document.getElementById('sendBtn').style.display = hasVal ? 'block' : 'none';
+            document.getElementById('micBtn').style.display = hasVal ? 'none' : 'block';
+        };
+
+        function sendMsg() {
+            const text = msgInp.value.trim();
+            if(!text) return;
+            const nick = document.getElementById('nickInp').value || 'User';
+            socket.emit('chat message', { text: encrypt(text), nick: nick });
+            renderMsg(text, 'out', 'Вы');
+            msgInp.value = "";
+            msgInp.oninput();
+        }
+
+        function renderMsg(text, type, author, isAudio = false) {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            const name = document.createElement('span');
+            name.className = 'msg-author';
+            name.textContent = author;
+            div.appendChild(name);
+
+            if(isAudio) {
+                const aud = document.createElement('audio');
+                aud.src = text; aud.controls = true; aud.style.width = "200px";
+                div.appendChild(aud);
+            } else {
+                const t = document.createElement('div');
+                t.textContent = text;
+                div.appendChild(t);
+            }
+            document.getElementById('msgBox').appendChild(div);
+            document.getElementById('msgBox').scrollTop = document.getElementById('msgBox').scrollHeight;
+        }
+
+        async function toggleMic() {
+            const icon = document.getElementById('micIcon');
+            if(!isRecording) {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                isRecording = true;
+                icon.classList.add('rec-active');
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        const base64 = reader.result;
+                        socket.emit('chat message', { text: encrypt(base64), nick: document.getElementById('nickInp').value, isAudio: true });
+                        renderMsg(base64, 'out', 'Вы', true);
+                    };
+                };
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                icon.classList.remove('rec-active');
+            }
+        }
+
+        function toggleModal(show) { document.getElementById('settingsModal').style.display = show ? 'flex' : 'none'; }
+        
+        function saveSettings() {
+            localStorage.setItem('f_nick', document.getElementById('nickInp').value);
+            localStorage.setItem('f_key', document.getElementById('cryptoInp').value);
+            toggleModal(false);
+        }
+
+        window.onload = () => {
+            document.getElementById('nickInp').value = localStorage.getItem('f_nick') || '';
+            document.getElementById('cryptoInp').value = localStorage.getItem('f_key') || '';
+        };
+
+        msgInp.onkeydown = e => { if(e.key === 'Enter') sendMsg(); };
+    </script>
+</body>
+</html>
 
