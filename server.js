@@ -84,6 +84,14 @@ io.on('connection', (socket) => {
     cb({ ok: true, user: safeUser(user) });
   });
 
+  // ── ИСПРАВЛЕНИЕ: переподключение по токену сессии ──
+  socket.on('restore_session', ({ username }, cb) => {
+    const user = users.get(username);
+    if (!user) return cb?.({ error: 'User not found' });
+    _login(socket, user);
+    cb?.({ ok: true, user: safeUser(user) });
+  });
+
   function _login(socket, user) {
     sessions.set(socket.id, user.username);
     online.add(user.username);
@@ -143,10 +151,17 @@ io.on('connection', (socket) => {
     const me = sessions.get(socket.id);
     if (!me) return;
     const cid = chatId(me, chatWith);
+    const updated = [];
     (messages.get(cid) || []).forEach(m => {
-      if (m.to === me) m.read = true;
+      if (m.to === me && !m.read) {
+        m.read = true;
+        updated.push(m.id);
+      }
     });
-    io.to(`u:${chatWith}`).emit('messages_read', { by: me });
+    // Уведомляем отправителя что сообщения прочитаны
+    if (updated.length > 0) {
+      io.to(`u:${chatWith}`).emit('messages_read', { by: me, msgIds: updated });
+    }
   });
 
   socket.on('delete_message', ({ msgId, chatWith }, cb) => {
@@ -174,7 +189,6 @@ io.on('connection', (socket) => {
   socket.on('call_user', ({ to, offer, callType }) => {
     const from = sessions.get(socket.id);
     if (!from) return;
-    // Check if target user is online
     if (!online.has(to)) {
       socket.emit('call_user_offline', { to });
       return;
