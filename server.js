@@ -29,8 +29,7 @@ function safeUser(u) {
     avatar: u.avatar || null,
     bio: u.bio || '',
     privacy: u.privacy,
-    online: online.has(u.username),
-    lastSeen: u.lastSeen || null
+    online: online.has(u.username)
   };
 }
 
@@ -57,7 +56,6 @@ io.on('connection', (socket) => {
     if (!username || !password) return cb({ error: 'Username and password required' });
     if (users.has(username)) return cb({ error: 'Username already taken' });
     if (username.length < 3) return cb({ error: 'Username must be at least 3 characters' });
-    if (!/^[a-z0-9_]+$/.test(username)) return cb({ error: 'Username: only letters, numbers, underscore' });
 
     const hashed = bcrypt.hashSync(password, 10);
     const user = {
@@ -67,8 +65,7 @@ io.on('connection', (socket) => {
       avatar: null,
       bio: '',
       privacy: { lastSeen: 'everyone', profilePhoto: 'everyone', online: 'everyone' },
-      createdAt: Date.now(),
-      lastSeen: null
+      createdAt: Date.now()
     };
     users.set(username, user);
     _login(socket, user);
@@ -82,14 +79,6 @@ io.on('connection', (socket) => {
       return cb({ error: 'Invalid username or password' });
     _login(socket, user);
     cb({ ok: true, user: safeUser(user) });
-  });
-
-  // ── ИСПРАВЛЕНИЕ: переподключение по токену сессии ──
-  socket.on('restore_session', ({ username }, cb) => {
-    const user = users.get(username);
-    if (!user) return cb?.({ error: 'User not found' });
-    _login(socket, user);
-    cb?.({ ok: true, user: safeUser(user) });
   });
 
   function _login(socket, user) {
@@ -107,10 +96,11 @@ io.on('connection', (socket) => {
     const me = sessions.get(socket.id);
     if (!me) return cb?.({ error: 'Not authenticated' });
     const user = users.get(me);
+    if (!user) return cb?.({ error: 'User not found' });
     if (!bcrypt.compareSync(oldPassword, user.password))
       return cb?.({ error: 'Неверный текущий пароль' });
     if (!newPassword || newPassword.length < 6)
-      return cb?.({ error: 'Новый пароль минимум 6 символов' });
+      return cb?.({ error: 'Минимум 6 символов' });
     user.password = bcrypt.hashSync(newPassword, 10);
     cb?.({ ok: true });
   });
@@ -135,6 +125,7 @@ io.on('connection', (socket) => {
     };
 
     messages.get(cid).push(msg);
+    // Keep last 500 per chat
     if (messages.get(cid).length > 500) messages.get(cid).shift();
 
     io.to(`u:${to}`).emit('new_message', msg);
@@ -151,16 +142,17 @@ io.on('connection', (socket) => {
     const me = sessions.get(socket.id);
     if (!me) return;
     const cid = chatId(me, chatWith);
-    const updated = [];
-    (messages.get(cid) || []).forEach(m => {
+    const msgs = messages.get(cid) || [];
+    let anyMarked = false;
+    msgs.forEach(m => {
       if (m.to === me && !m.read) {
         m.read = true;
-        updated.push(m.id);
+        anyMarked = true;
       }
     });
-    // Уведомляем отправителя что сообщения прочитаны
-    if (updated.length > 0) {
-      io.to(`u:${chatWith}`).emit('messages_read', { by: me, msgIds: updated });
+    // Notify sender that their messages were read
+    if (anyMarked) {
+      io.to(`u:${chatWith}`).emit('messages_read', { by: me });
     }
   });
 
@@ -188,9 +180,9 @@ io.on('connection', (socket) => {
   // ── WebRTC Signaling ──
   socket.on('call_user', ({ to, offer, callType }) => {
     const from = sessions.get(socket.id);
-    if (!from) return;
     if (!online.has(to)) {
-      socket.emit('call_user_offline', { to });
+      // User is offline, notify caller
+      io.to(`u:${from}`).emit('call_user_offline');
       return;
     }
     io.to(`u:${to}`).emit('incoming_call', { from, offer, callType });
@@ -219,7 +211,7 @@ io.on('connection', (socket) => {
     if (displayName) user.displayName = displayName.trim();
     if (bio !== undefined) user.bio = bio;
     if (privacy) user.privacy = { ...user.privacy, ...privacy };
-    io.emit('user_updated', { username: me, displayName: user.displayName, avatar: user.avatar, bio: user.bio, privacy: user.privacy });
+    io.emit('user_updated', { username: me, displayName: user.displayName, avatar: user.avatar });
     cb?.({ ok: true, user: safeUser(user) });
   });
 
@@ -229,8 +221,6 @@ io.on('connection', (socket) => {
   function _cleanup(socket) {
     const username = sessions.get(socket.id);
     if (username) {
-      const user = users.get(username);
-      if (user) user.lastSeen = Date.now();
       sessions.delete(socket.id);
       online.delete(username);
       io.emit('user_offline', { username, lastSeen: Date.now() });
@@ -239,6 +229,7 @@ io.on('connection', (socket) => {
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-server.listen(process.env.PORT || 3000, '0.0.0.0', () => {
-  console.log(`\n  Freedom Messenger running on port ${process.env.PORT || 3000}\n`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n  Freedom Messenger running on port ${PORT}\n`);
 });
