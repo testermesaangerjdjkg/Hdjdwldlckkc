@@ -688,951 +688,128 @@ html, body { height:100%; overflow:hidden; font-family:'Inter',sans-serif; backg
 
 <script>
 // SVG snippets
-const CHK = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
-const DBLCHK = `<svg width="16" height="12" viewBox="0 0 28 14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 7 7 12 14 4"/><polyline points="14 7 19 12 26 4"/></svg>`;
-const PLAY_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-const PAUSE_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
-const PHONE_ICO = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>`;
-const EMOJIS = ['😀','😂','🥰','😍','🤔','😎','😭','😤','🥺','🤣','❤️','🔥','👍','👎','🎉','✨','💯','🙏','😊','🤗','😏','😅','🤦','🤷','💪','👀','🫡','🫂','💀','🤙','💬','🚀','🌟','🎮','🍕','🎵','🌈','🌙','⚡','🎯'];
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
-let socket, me=null, cur=null;
-let currentChat = null;
-let users=[], hist={}, unread={}, prev={};
-let replyMsg=null, ctxMsg=null;
-let tyTimer=null, typing=false;
-let recorder=null, chunks=[], recInt=null;
-let pc=null, localStream=null, incomingOffer=null;
-let callInt=null, callSecs=0, callUser=null, callKind='audio';
-let attachImg=null, toastTimer=null, toastUser=null, pmUser=null;
-let notifEnabled=false;
-let currentTheme = localStorage.getItem('theme') || 'dark';
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // Apply saved theme immediately
 document.documentElement.setAttribute('data-theme', currentTheme);
 
-function init(){
-  socket=io();
-  socket.on('new_message', onMsg);
-  socket.on('user_online', ({username}) => setStatus(username, true));
-  socket.on('user_offline', ({username, lastSeen}) => setStatus(username, false, lastSeen));
-  socket.on('user_updated', onUserUpd);
-  socket.on('user_typing', onTypingEvt);
-  socket.on('messages_read', ({by}) => markRead(by));
-  socket.on('message_deleted', ({msgId}) => rmEl(msgId));
-  socket.on('incoming_call', onInCall);
-  socket.on('call_answered', onCallAns);
-  socket.on('ice_candidate', ({candidate}) => { try{ if(pc) pc.addIceCandidate(new RTCIceCandidate(candidate)); }catch(e){} });
-  socket.on('call_ended', () => callEndedRemote());
-  socket.on('call_rejected', () => callSt('Отклонено', true));
-  socket.on('call_busy', () => callSt('Занято', true));
-  socket.on('call_user_offline', () => callSt('Пользователь не в сети', true));
-  updateThemeUI();
-}
+/* removed duplicate definition */
 
 // ── Auth ──
-function authTab(t){
-  document.querySelectorAll('.auth-seg-btn').forEach((b,i) => b.classList.toggle('active', t==='login'?i===0:i===1));
-  G('lf').style.display = t==='login' ? '' : 'none';
-  G('rf').style.display = t==='reg' ? '' : 'none';
-}
-function doLogin(){
-  const u=V('lu'), p=V('lp');
-  if(!u||!p) return E('le','Заполните все поля');
-  socket.emit('login', {username:u, password:p}, r => r.error ? E('le',r.error) : onAuth(r.user));
-}
-function doReg(){
-  const n=V('rn'), u=V('ru'), p=V('rp');
-  if(!n||!u||!p) return E('re','Заполните все поля');
-  socket.emit('register', {username:u, password:p, displayName:n}, r => r.error ? E('re',r.error) : onAuth(r.user));
-}
-function onAuth(user){
-  me=user;
-  G('auth-screen').style.display='none';
-  G('app').classList.add('on');
-  updMe(); loadUsers();
-}
-function doLogout(){
-  socket.emit('logout');
-  me=null; cur=null; currentChat=null; users=[]; hist={}; unread={}; prev={};
-  G('app').classList.remove('on');
-  G('auth-screen').style.display='flex';
-  G('chat-view').style.display='none';
-  G('no-chat').style.display='flex';
-  closeSett();
-}
-function G(id){ return document.getElementById(id); }
-function V(id){ return G(id).value.trim(); }
-function E(id, msg){ G(id).textContent=msg; setTimeout(() => G(id).textContent='', 4000); }
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Me UI ──
-function updMe(){
-  const n = me.displayName || me.username;
-  G('me-nm').textContent = n;
-  setAv(G('me-av'), me, '10px');
-  G('sett-un').textContent = n;
-  G('sett-hn').textContent = '@'+me.username;
-  G('sett-nm-sub').textContent = n;
-  setAv(G('sett-av'), me, '20px');
-  // set privacy selects
-  if(me.privacy){
-    G('priv-ls').value = me.privacy.lastSeen || 'everyone';
-    G('priv-pp').value = me.privacy.profilePhoto || 'everyone';
-    G('priv-on').value = me.privacy.online || 'everyone';
-  }
-}
-function setAv(el, user, r='50%'){
-  if(!el) return;
-  el.style.background = col(user.username);
-  el.style.borderRadius = r;
-  el.innerHTML = user.avatar
-    ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:${r}">`
-    : `<span>${ini(user.displayName||user.username)}</span>`;
-}
-function ini(n){ return n.split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()).join('')||'?'; }
-function col(s){ const c=['#4f8ef7','#7c4dff','#e91e8c','#00bcd4','#ff6b35','#2eb872','#ff9800','#9c27b0']; let h=0; for(let ch of s) h=(h*31+ch.charCodeAt(0))%c.length; return c[h]; }
-function ft(ts){ const d=new Date(ts),n=new Date(); if(d.toDateString()===n.toDateString()) return d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); if(n-d<7*864e5) return d.toLocaleDateString('ru-RU',{weekday:'short'}); return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}); }
-function ftLong(ts){ if(!ts) return 'давно'; const d=new Date(ts),n=new Date(); if(n-d<60000) return 'только что'; if(n-d<3600000) return Math.floor((n-d)/60000)+' мин назад'; if(d.toDateString()===n.toDateString()) return 'сегодня в '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' в '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function fs(s){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Users ──
-function loadUsers(){
-  fetch('/api/users').then(r=>r.json()).then(u => { users=u.filter(x=>x.username!==me.username); renderList(); });
-}
-function switchTab(tab, btn){
-  document.querySelectorAll('.sb-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-  renderList(tab);
-}
-function goPeople(){ G('tab-p').click(); }
-function filterList(q){
-  const active = document.querySelector('.sb-tab.active').textContent.includes('Люди') ? 'people' : 'chats';
-  renderList(active, q.toLowerCase().replace(/^@/,''));
-}
-function renderList(mode='chats', q=''){
-  const el=G('clist');
-  const f=users.filter(u => !q || (u.displayName||u.username).toLowerCase().includes(q) || u.username.includes(q));
-  if(!f.length){
-    el.innerHTML=`<div class="empty-list"><div class="empty-list-icon"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div>Никого не найдено</div></div>`;
-    return;
-  }
-  let html='';
-  if(mode==='chats'){
-    const wm=f.filter(u=>prev[u.username]), wo=f.filter(u=>!prev[u.username]);
-    if(wm.length) html+=`<div class="sec-hd">Активные</div>`;
-    wm.forEach(u=>html+=ci(u));
-    if(wo.length&&wm.length) html+=`<div class="sec-hd">Контакты</div>`;
-    wo.forEach(u=>html+=ci(u));
-  } else {
-    html+=`<div class="sec-hd">Все пользователи · ${f.length}</div>`;
-    f.forEach(u=>html+=ci(u));
-  }
-  el.innerHTML=html;
-}
-function ci(u){
-  const p=prev[u.username], badge=(unread[u.username]||0)>0?`<div class="ubadge">${unread[u.username]}</div>`:'';
-  const showOnline = !me?.privacy || me.privacy.online!=='nobody';
-  const online = u.online && showOnline ? `<div class="odot"></div>` : '';
-  const showAv = !u.privacy || u.privacy.profilePhoto==='everyone';
-  const avC = (u.avatar && showAv) ? `<img src="${u.avatar}">` : `<span>${ini(u.displayName||u.username)}</span>`;
-  const time=p?`<span class="ci-time">${ft(p.timestamp)}</span>`:'';
-  let ptx='';
-  if(p) ptx=p.type==='image'?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Фото`:p.type==='voice'?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg> Голосовое`:esc(p.content||'').slice(0,45);
-  else ptx=u.online?`<span style="color:var(--green);font-size:11px">В сети</span>`:(u.lastSeen&&u.privacy?.lastSeen!=='nobody')?`<span style="font-size:11px">был(а) ${ftLong(u.lastSeen)}</span>`:'';
-  return `<div class="chat-item${currentChat===u.username?' active':''}" onclick="openChat('${u.username}')"><div class="ci-av" style="background:${col(u.username)}">${avC}${online}</div><div class="ci-info"><div class="ci-top"><span class="ci-name">${esc(u.displayName||u.username)}</span>${time}</div><div class="ci-bot"><span class="ci-prev">${ptx}</span>${badge}</div></div></div>`;
-}
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Open Chat ──
-function openChat(username){
-  currentChat=username; cur=username; unread[username]=0;
-  const u=users.find(x=>x.username===username)||{username,displayName:username};
-  const hav=G('ch-av'); hav.style.background=col(username); setAv(hav,u,'12px');
-  G('ch-name').textContent=u.displayName||username;
-  const st=G('ch-status');
-  if(u.online){ st.textContent='В сети'; st.className='ch-status on'; }
-  else if(u.lastSeen && u.privacy?.lastSeen!=='nobody'){ st.textContent='был(а) '+ftLong(u.lastSeen); st.className='ch-status'; }
-  else { st.textContent='Не в сети'; st.className='ch-status'; }
-  G('no-chat').style.display='none';
-  G('chat-view').style.display='flex';
-  G('chat-area').classList.add('mob');
-  socket.emit('get_messages', {with:username}, msgs => { hist[username]=msgs||[]; renderMsgs(); scrollBot(); });
-  socket.emit('mark_read', {chatWith:username});
-  renderList();
-}
-function closeMob(){ G('chat-area').classList.remove('mob'); }
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Render Messages ──
-function renderMsgs(){
-  const area=G('msgs'), msgs=hist[currentChat]||[];
-  if(!msgs.length){ area.innerHTML=`<div style="text-align:center;color:var(--text3);padding:48px 20px;font-size:13px">Начните переписку 👋</div>`; return; }
-  let html='', lastD=null;
-  msgs.forEach(m=>{
-    const d=new Date(m.timestamp).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
-    if(d!==lastD){ html+=`<div class="date-div">${d}</div>`; lastD=d; }
-    html+=bbl(m);
-  });
-  area.innerHTML=html;
-  bindEvts(area);
-}
-function bbl(m){
-  const out=m.from===me.username, u=users.find(x=>x.username===m.from)||{username:m.from,displayName:m.from};
-  const showAv = !u.privacy || u.privacy.profilePhoto==='everyone';
-  const avC=(u.avatar && showAv)?`<img src="${u.avatar}">`:`<span>${ini(u.displayName||u.username)}</span>`;
-  const time=ft(m.timestamp), checks=out?`<span class="chk">${m.read?DBLCHK:CHK}</span>`:'';
-  let reply='';
-  if(m.replyTo){
-    const orig=(hist[currentChat]||[]).find(x=>x.id===m.replyTo);
-    if(orig){ const rn=orig.from===me.username?'Вы':(users.find(x=>x.username===orig.from)?.displayName||orig.from); reply=`<div class="bbl-reply"><div class="bbl-rname">${rn}</div><div class="bbl-rtext">${orig.type==='image'?'Фото':orig.type==='voice'?'Голосовое':esc(orig.content||'').slice(0,60)}</div></div>`; }
-  }
-  let body='';
-  if(m.type==='image') body=`<img class="bbl-img" src="${m.content}" alt="фото">`;
-  else if(m.type==='voice'){ const bars=Array.from({length:22},()=>`<span style="height:${5+Math.floor(Math.random()*16)}px"></span>`).join(''); body=`<div class="voice-msg"><button class="voice-play" onclick="playV(this,'${m.content}')">${PLAY_ICO}</button><div class="voice-waves">${bars}</div><span class="voice-dur">${m.duration||'0:00'}</span></div>`; }
-  else body=`<div class="bbl-text">${esc(m.content||'').replace(/\n/g,'<br>')}</div>`;
-  const avEl=!out?`<div class="msg-av" style="background:${col(m.from)}">${avC}</div>`:'';
-  return `<div class="mrow ${out?'out':'in'}" id="mw-${m.id}">${avEl}<div class="bubble" data-id="${m.id}" data-from="${m.from}" data-content="${esc(m.content||'')}">${reply}${body}<div class="bbl-meta">${time}${checks}</div></div></div>`;
-}
-function bindEvts(el){
-  el.querySelectorAll('.bubble').forEach(b => b.addEventListener('contextmenu', e => { e.preventDefault(); showCtx(e, b.dataset.id); }));
-  el.querySelectorAll('.bbl-img').forEach(img => img.addEventListener('click', () => { G('lbi').src=img.src; G('lb').classList.add('on'); }));
-}
-function scrollBot(){ const a=G('msgs'); setTimeout(()=>a.scrollTop=a.scrollHeight, 40); }
-
-// ── Send ──
-function sendMsg(){
-  if(!currentChat) return;
-  if(attachImg){ sendImg(); return; }
-  const inp=G('mi'), text=inp.value.trim();
-  if(!text) return;
-  const d={to:currentChat, content:text, type:'text'};
-  if(replyMsg) d.replyTo=replyMsg.id;
-  socket.emit('send_message', d, r => { if(r?.message) pushMsg(r.message); });
-  inp.value=''; resize(inp); cancelReply(); clearTyp();
-}
-function sendImg(){
-  socket.emit('send_message', {to:currentChat, content:attachImg, type:'image', replyTo:replyMsg?.id||null}, r => { if(r?.message) pushMsg(r.message); });
-  rmImg(); cancelReply();
-}
-function pushMsg(msg){
-  if(!hist[currentChat]) hist[currentChat]=[];
-  hist[currentChat].push(msg); prev[currentChat]=msg;
-  const area=G('msgs'), ph=area.querySelector('[style*="Начните"]');
-  if(ph) ph.remove();
-  const d=document.createElement('div'); d.innerHTML=bbl(msg);
-  const el=d.firstElementChild; area.appendChild(el);
-  bindEvts(el.parentElement||area); scrollBot(); renderList();
-}
-function onMsg(msg){
-  const cu=msg.from===me.username?msg.to:msg.from;
-  if(!hist[cu]) hist[cu]=[]; hist[cu].push(msg); prev[cu]=msg;
-  if(cu===currentChat){ pushMsg(msg); socket.emit('mark_read',{chatWith:cu}); }
-  else if(msg.from!==me.username){ unread[msg.from]=(unread[msg.from]||0)+1; showToast(msg); sendBrowserNotif(msg); }
-  renderList();
-}
-function mkey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMsg(); } }
-function handleImg(e){ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{ attachImg=ev.target.result; G('ithumb').src=attachImg; G('is').classList.add('on'); }; r.readAsDataURL(f); e.target.value=''; }
-function rmImg(){ attachImg=null; G('is').classList.remove('on'); }
-function resize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
-
-// ── Typing ──
-function onType(){ if(!currentChat) return; if(!typing){ typing=true; socket.emit('typing',{to:currentChat,isTyping:true}); } clearTimeout(tyTimer); tyTimer=setTimeout(clearTyp, 2500); }
-function clearTyp(){ if(typing){ typing=false; socket.emit('typing',{to:currentChat,isTyping:false}); } }
-function onTypingEvt({from,isTyping:t}){ if(from!==currentChat) return; const area=G('msgs'), ex=document.getElementById('tind'); if(t&&!ex){ const d=document.createElement('div'); d.id='tind'; d.className='typing-row'; d.innerHTML=`<div class="tdots"><span></span><span></span><span></span></div><span>печатает...</span>`; area.appendChild(d); scrollBot(); } else if(!t&&ex) ex.remove(); }
-
-// ── Reply/Delete ──
-function cancelReply(){ replyMsg=null; G('rs').classList.remove('on'); }
-function rmEl(id){ G('mw-'+id)?.remove(); }
-function markRead(by){ if(by!==currentChat) return; (hist[currentChat]||[]).forEach(m=>{ if(m.from===me.username) m.read=true; }); renderMsgs(); }
-
-// ── Context ──
-function showCtx(e, id){ ctxMsg=(hist[currentChat]||[]).find(m=>m.id===id); const c=G('ctx'); c.style.left=Math.min(e.clientX,window.innerWidth-200)+'px'; c.style.top=Math.min(e.clientY,window.innerHeight-130)+'px'; c.classList.add('on'); G('ctx-del').style.display=ctxMsg?.from===me.username?'':'none'; }
-document.addEventListener('click', () => G('ctx').classList.remove('on'));
-function ctxReply(){ if(!ctxMsg) return; replyMsg=ctxMsg; const n=ctxMsg.from===me.username?'Вы':(users.find(u=>u.username===ctxMsg.from)?.displayName||ctxMsg.from); G('rs-nm').textContent=n; G('rs-tx').textContent=ctxMsg.type==='image'?'Фото':ctxMsg.type==='voice'?'Голосовое':ctxMsg.content?.slice(0,80); G('rs').classList.add('on'); G('mi').focus(); }
-function ctxCopy(){ if(ctxMsg?.content) navigator.clipboard.writeText(ctxMsg.content).catch(()=>{}); }
-function ctxDel(){ if(!ctxMsg) return; socket.emit('delete_message', {msgId:ctxMsg.id,chatWith:currentChat}, r=>{ if(r?.ok){ hist[currentChat]=(hist[currentChat]||[]).filter(m=>m.id!==ctxMsg.id); rmEl(ctxMsg.id); } }); }
-
-// ── Emoji ──
-function toggleEmoji(){ const p=G('ep'); if(!p.innerHTML) p.innerHTML=`<div class="emoji-grid">${EMOJIS.map(e=>`<div class="emoji-it" onclick="insEmoji('${e}')">${e}</div>`).join('')}</div>`; p.classList.toggle('on'); }
-function insEmoji(e){ const inp=G('mi'), pos=inp.selectionStart; inp.value=inp.value.slice(0,pos)+e+inp.value.slice(pos); inp.selectionStart=inp.selectionEnd=pos+e.length; inp.focus(); G('ep').classList.remove('on'); }
-document.addEventListener('click', e=>{ if(!e.target.closest('.iwrap')) G('ep')?.classList.remove('on'); });
-
-// ── Voice ──
-async function toggleRec(){
-  if(recorder&&recorder.state==='recording'){ recorder.stop(); return; }
-  try{
-    const s=await navigator.mediaDevices.getUserMedia({audio:true});
-    recorder=new MediaRecorder(s); chunks=[]; let sec=0;
-    const btn=G('mic-btn'); btn.classList.add('rec');
-    recInt=setInterval(()=>{ sec++; btn.title=`Запись: ${fs(sec)}`; }, 1000);
-    recorder.ondataavailable=e=>chunks.push(e.data);
-    recorder.onstop=()=>{
-      clearInterval(recInt); btn.classList.remove('rec'); btn.title='Голосовое сообщение';
-      const blob=new Blob(chunks,{type:'audio/webm'}); const r=new FileReader();
-      r.onload=ev=>{ socket.emit('send_message',{to:currentChat,content:ev.target.result,type:'voice',duration:fs(sec),replyTo:replyMsg?.id||null},res=>{ if(res?.message) pushMsg(res.message); }); };
-      r.readAsDataURL(blob); s.getTracks().forEach(t=>t.stop()); cancelReply();
-    };
-    recorder.start();
-  }catch(e){ alert('Нет доступа к микрофону'); }
-}
-function playV(btn, src){ const a=new Audio(src); btn.innerHTML=PAUSE_ICO; a.play(); a.onended=()=>{ btn.innerHTML=PLAY_ICO; }; }
-
-// ── Status ──
-function setStatus(username, online, lastSeen){
-  const u=users.find(x=>x.username===username);
-  if(u){ u.online=online; if(!online&&lastSeen) u.lastSeen=lastSeen; }
-  if(currentChat===username){
-    const s=G('ch-status');
-    if(online){ s.textContent='В сети'; s.className='ch-status on'; }
-    else if(lastSeen&&u?.privacy?.lastSeen!=='nobody'){ s.textContent='был(а) '+ftLong(lastSeen); s.className='ch-status'; }
-    else { s.textContent='Не в сети'; s.className='ch-status'; }
-  }
-  renderList();
-}
-function onUserUpd({username, displayName, avatar, bio, privacy}){
-  const u=users.find(x=>x.username===username);
-  if(u){ u.displayName=displayName; u.avatar=avatar; if(bio!==undefined) u.bio=bio; if(privacy) u.privacy=privacy; }
-  if(username===me.username){ me.displayName=displayName; me.avatar=avatar; if(bio!==undefined) me.bio=bio; if(privacy) me.privacy=privacy; updMe(); }
-  renderList();
-}
-
-// ── Settings ──
-function openSett(){ G('sp').classList.add('on'); G('sef').classList.remove('on'); }
-function closeSett(){ G('sp').classList.remove('on'); }
-function toggleEdit(){
-  const f=G('sef');
-  if(!f.classList.contains('on')){ G('en').value=me.displayName||''; G('eb').value=me.bio||''; f.classList.add('on'); }
-  else f.classList.remove('on');
-}
-function saveProf(){
-  const n=G('en').value.trim(), b=G('eb').value.trim();
-  socket.emit('update_profile', {displayName:n, bio:b}, r=>{ if(r?.ok){ me=r.user; updMe(); G('sef').classList.remove('on'); } });
-}
-function chgAv(e){
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=ev=>{ fetch('/api/avatar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:me.username,avatar:ev.target.result})}).then(()=>{ me.avatar=ev.target.result; updMe(); }); };
-  r.readAsDataURL(f); e.target.value='';
-}
-function savePriv(key, val){
-  const privacy={...me.privacy, [key]:val};
-  socket.emit('update_profile', {privacy}, r=>{ if(r?.ok) me=r.user; });
-}
-
-// ── Theme ──
-function toggleTheme(){
-  currentTheme = currentTheme==='dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', currentTheme);
-  localStorage.setItem('theme', currentTheme);
-  updateThemeUI();
-}
-function updateThemeUI(){
-  const isDark=currentTheme==='dark';
-  G('theme-sub').textContent = isDark ? 'Тёмная' : 'Светлая';
-  G('theme-ico').innerHTML = isDark
-    ? `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`
-    : `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
-}
-
-// ── Notifications ──
-async function toggleNotif(on){
-  if(on){
-    if(Notification.permission==='default'){
-      const perm=await Notification.requestPermission();
-      if(perm!=='granted'){ G('notif-chk').checked=false; G('notif-sub').textContent='Отказано браузером'; return; }
-    }
-    if(Notification.permission==='denied'){ G('notif-chk').checked=false; G('notif-sub').textContent='Заблокировано в браузере'; return; }
-    notifEnabled=true; G('notif-sub').textContent='Включены';
-    localStorage.setItem('notif','1');
-  } else {
-    notifEnabled=false; G('notif-sub').textContent='Выключены';
-    localStorage.setItem('notif','0');
-  }
-}
-function sendBrowserNotif(msg){
-  if(!notifEnabled || Notification.permission!=='granted') return;
-  if(document.hasFocus()) return;
-  const u=users.find(x=>x.username===msg.from)||{username:msg.from,displayName:msg.from};
-  const body=msg.type==='image'?'Фото':msg.type==='voice'?'Голосовое':msg.content||'';
-  const n=new Notification(u.displayName||u.username, {body, icon:'/favicon.ico'});
-  n.onclick=()=>{ window.focus(); openChat(msg.from); n.close(); };
-  setTimeout(()=>n.close(), 5000);
-}
-// Init notifications state
-window.addEventListener('load', ()=>{
-  const saved=localStorage.getItem('notif');
-  if(saved==='1' && Notification.permission==='granted'){ notifEnabled=true; G('notif-chk').checked=true; G('notif-sub').textContent='Включены'; }
-});
-
-// ── Change Password ──
-function openChangePwd(){
-  G('pwd-old').value=''; G('pwd-new').value=''; G('pwd-new2').value='';
-  G('pwd-err').textContent=''; G('pwd-ok').textContent='';
-  G('pwd-modal').classList.add('on');
-}
-function closePwdModal(){ G('pwd-modal').classList.remove('on'); }
-function submitPwd(){
-  const old=G('pwd-old').value.trim(), nw=G('pwd-new').value.trim(), nw2=G('pwd-new2').value.trim();
-  G('pwd-err').textContent=''; G('pwd-ok').textContent='';
-  if(!old||!nw||!nw2) return G('pwd-err').textContent='Заполните все поля';
-  if(nw!==nw2) return G('pwd-err').textContent='Пароли не совпадают';
-  if(nw.length<6) return G('pwd-err').textContent='Минимум 6 символов';
-  socket.emit('change_password', {oldPassword:old, newPassword:nw}, r=>{
-    if(r?.error) G('pwd-err').textContent=r.error;
-    else { G('pwd-ok').textContent='Пароль успешно изменён!'; setTimeout(closePwdModal, 1500); }
-  });
-}
-
-// ── Profile Modal ──
-function showPM(username){
-  if(!username) return;
-  const u=users.find(x=>x.username===username)||{username,displayName:username};
-  pmUser=username;
-  const av=G('pmav'); av.style.background=col(username);
-  const showAv=!u.privacy||u.privacy.profilePhoto==='everyone';
-  setAv(av, {...u, avatar: showAv?u.avatar:null}, '16px');
-  G('pmnm').textContent=u.displayName||username;
-  G('pmhn').textContent='@'+username;
-  const st=G('pmst');
-  if(u.online){ st.textContent='В сети'; st.className='pm-status on'; }
-  else if(u.lastSeen&&u.privacy?.lastSeen!=='nobody'){ st.textContent='был(а) '+ftLong(u.lastSeen); st.className='pm-status off'; }
-  else { st.textContent='Не в сети'; st.className='pm-status off'; }
-  G('pmbio').textContent=u.bio||'Нет описания';
-  G('pmo').classList.add('on');
-}
-function closePM(){ G('pmo').classList.remove('on'); }
-function chatFromPM(){ closePM(); openChat(pmUser); }
-function callFromPM(t){ closePM(); openChat(pmUser); setTimeout(()=>startCall(t), 300); }
-
-// ── Toast ──
-function showToast(msg){
-  const u=users.find(x=>x.username===msg.from)||{username:msg.from,displayName:msg.from};
-  toastUser=msg.from;
-  const av=G('tav'); av.style.background=col(msg.from); av.style.borderRadius='11px'; setAv(av,u,'11px');
-  G('tnm').textContent=u.displayName||u.username;
-  G('ttx').textContent=msg.type==='image'?'📷 Фото':msg.type==='voice'?'🎤 Голосовое':(msg.content||'').slice(0,60);
-  const t=G('toast'); t.classList.add('on');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'), 4500);
-}
-function openToast(){ G('toast').classList.remove('on'); if(toastUser) openChat(toastUser); }
-
-// ─────────────── CALLS ───────────────
-const ICE = { iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}] };
-
-async function startCall(type){
-  if(!currentChat){ alert('Сначала откройте чат'); return; }
-  const targetUser = users.find(x=>x.username===currentChat);
-  if(!targetUser?.online){ showCallMsg('Пользователь не в сети'); return; }
-  callKind=type; callUser=currentChat;
-  const u=users.find(x=>x.username===currentChat)||{username:currentChat,displayName:currentChat};
-  showCallUI(u, type, 'out');
-  try{
-    localStream=await navigator.mediaDevices.getUserMedia(type==='video'?{video:true,audio:true}:{audio:true});
-    if(type==='video'){ G('localVideo').srcObject=localStream; G('va').classList.add('on'); }
-    pc=new RTCPeerConnection(ICE);
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-    pc.ontrack=e=>{ G('remoteVideo').srcObject=e.streams[0]; };
-    pc.onicecandidate=e=>{ if(e.candidate) socket.emit('ice_candidate',{to:callUser,candidate:e.candidate}); };
-    pc.onconnectionstatechange=()=>{ if(pc&&(pc.connectionState==='failed'||pc.connectionState==='disconnected')) callEndedRemote(); };
-    const offer=await pc.createOffer(); await pc.setLocalDescription(offer);
-    socket.emit('call_user', {to:callUser, offer, callType:type});
-  }catch(e){
-    cleanCall();
-    alert('Нет доступа к '+( type==='video'?'камере/':'')+'микрофону');
-  }
-}
-
-function onInCall({from, offer, callType:ct}){
-  if(pc){ socket.emit('call_busy',{to:from}); return; }
-  incomingOffer=offer; callUser=from; callKind=ct;
-  const u=users.find(x=>x.username===from)||{username:from,displayName:from};
-  showCallUI(u, ct, 'in');
-}
-
-async function acceptCall(){
-  const offer=incomingOffer; incomingOffer=null;
-  try{
-    localStream=await navigator.mediaDevices.getUserMedia(callKind==='video'?{video:true,audio:true}:{audio:true});
-    if(callKind==='video'){ G('localVideo').srcObject=localStream; G('va').classList.add('on'); }
-    pc=new RTCPeerConnection(ICE);
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-    pc.ontrack=e=>{ G('remoteVideo').srcObject=e.streams[0]; };
-    pc.onicecandidate=e=>{ if(e.candidate) socket.emit('ice_candidate',{to:callUser,candidate:e.candidate}); };
-    pc.onconnectionstatechange=()=>{ if(pc&&(pc.connectionState==='failed'||pc.connectionState==='disconnected')) callEndedRemote(); };
-    await pc.setRemoteDescription(new RTCSessionDescription(offer));
-    const answer=await pc.createAnswer(); await pc.setLocalDescription(answer);
-    socket.emit('call_answer', {to:callUser, answer});
-    startCallTimer();
-    const u=users.find(x=>x.username===callUser)||{username:callUser,displayName:callUser};
-    showCallUI(u, callKind, 'active');
-  }catch(e){ cleanCall(); }
-}
-
-async function onCallAns({answer}){
-  try{
-    await pc.setRemoteDescription(new RTCSessionDescription(answer));
-    startCallTimer();
-    const u=users.find(x=>x.username===callUser)||{username:callUser,displayName:callUser};
-    showCallUI(u, callKind, 'active');
-  }catch(e){}
-}
-
-function endCall(){ socket.emit('call_end',{to:callUser}); cleanCall(); }
-function rejectCall(){ socket.emit('call_reject',{to:callUser}); cleanCall(); }
-function callEndedRemote(){ callSt('Звонок завершён', true); }
-
-function cleanCall(){
-  if(pc){ pc.close(); pc=null; }
-  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
-  incomingOffer=null;
-  clearInterval(callInt); callSecs=0;
-  G('ctmr').style.display='none';
-  G('va').classList.remove('on');
-  G('remoteVideo').srcObject=null;
-  G('localVideo').srcObject=null;
-  G('co').classList.remove('on');
-  G('cav').classList.remove('ringing');
-}
-
-function callSt(msg, close){
-  G('cst').textContent=msg;
-  if(close) setTimeout(cleanCall, 2000);
-}
-
-function showCallMsg(msg){
-  // brief toast-style message for call errors
-  const old=toastUser;
-  G('tnm').textContent='Звонок';
-  G('ttx').textContent=msg;
-  const t=G('toast'); t.classList.add('on');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ t.classList.remove('on'); toastUser=old; }, 3000);
-}
-
-function startCallTimer(){
-  callSecs=0;
-  const el=G('ctmr'); el.style.display='block';
-  el.textContent=fs(0);
-  callInt=setInterval(()=>{ callSecs++; el.textContent=fs(callSecs); }, 1000);
-}
-
-function showCallUI(u, type, mode){
-  const av=G('cav'); av.style.background=col(u.username);
-  setAv(av, u, '22px');
-  G('cnm').textContent=u.displayName||u.username;
-// SVG snippets
-const CHK = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
-const DBLCHK = `<svg width="16" height="12" viewBox="0 0 28 14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 7 7 12 14 4"/><polyline points="14 7 19 12 26 4"/></svg>`;
-const PLAY_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-const PAUSE_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
-const PHONE_ICO = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>`;
-const EMOJIS = ['😀','😂','🥰','😍','🤔','😎','😭','😤','🥺','🤣','❤️','🔥','👍','👎','🎉','✨','💯','🙏','😊','🤗','😏','😅','🤦','🤷','💪','👀','🫡','🫂','💀','🤙','💬','🚀','🌟','🎮','🍕','🎵','🌈','🌙','⚡','🎯'];
-
-let socket, me=null, cur=null;
-let currentChat = null;
-let users=[], hist={}, unread={}, prev={};
-let replyMsg=null, ctxMsg=null;
-let tyTimer=null, typing=false;
-let recorder=null, chunks=[], recInt=null;
-let pc=null, localStream=null, incomingOffer=null;
-let callInt=null, callSecs=0, callUser=null, callKind='audio';
-let attachImg=null, toastTimer=null, toastUser=null, pmUser=null;
-let notifEnabled=false;
-let currentTheme = localStorage.getItem('theme') || 'dark';
-
-// Переменные для контроля аудио (чтобы не играли одновременно)
-let currentAudio = null;
-let currentAudioBtn = null;
-
-document.documentElement.setAttribute('data-theme', currentTheme);
-
-function init(){
-  socket=io();
-  
-  // АВТОВХОД (взято из исправленного кода)
-  const savedSession = localStorage.getItem('fm_session');
-  if(savedSession) {
-    try {
-      const s = JSON.parse(savedSession);
-      socket.emit('login', {username: s.username, password: s.password}, r => {
-        if(!r.error) onAuth(r.user);
-      });
-    } catch(e) { localStorage.removeItem('fm_session'); }
-  }
-
-  // Реконнект сессии при обрыве связи
-  socket.on('connect', () => {
-     if (me && localStorage.getItem('fm_session')) {
-        const s = JSON.parse(localStorage.getItem('fm_session'));
-        socket.emit('login', { username: s.username, password: s.password }, () => {
-            loadUsers();
-        });
-     }
-  });
-
-  socket.on('new_message', onMsg);
-  socket.on('user_online', ({username}) => setStatus(username, true));
-  socket.on('user_offline', ({username, lastSeen}) => setStatus(username, false, lastSeen));
-  socket.on('user_updated', onUserUpd);
-  socket.on('user_typing', onTypingEvt);
-  socket.on('messages_read', ({by}) => markRead(by));
-  socket.on('message_deleted', ({msgId}) => rmEl(msgId));
-  socket.on('incoming_call', onInCall);
-  socket.on('call_answered', onCallAns);
-  socket.on('ice_candidate', ({candidate}) => { try{ if(pc) pc.addIceCandidate(new RTCIceCandidate(candidate)); }catch(e){} });
-  socket.on('call_ended', () => callEndedRemote());
-  socket.on('call_rejected', () => callSt('Отклонено', true));
-  socket.on('call_busy', () => callSt('Занято', true));
-  socket.on('call_user_offline', () => callSt('Пользователь не в сети', true));
-  updateThemeUI();
-}
-
-// ── Auth ──
-function authTab(t){
-  document.querySelectorAll('.auth-seg-btn').forEach((b,i) => b.classList.toggle('active', t==='login'?i===0:i===1));
-  G('lf').style.display = t==='login' ? '' : 'none';
-  G('rf').style.display = t==='reg' ? '' : 'none';
-}
-function doLogin(){
-  const u=V('lu'), p=V('lp');
-  if(!u||!p) return E('le','Заполните все поля');
-  socket.emit('login', {username:u, password:p}, r => {
-    if(r.error) return E('le',r.error);
-    localStorage.setItem('fm_session', JSON.stringify({username:u, password:p}));
-    onAuth(r.user);
-  });
-}
-function doReg(){
-  const n=V('rn'), u=V('ru'), p=V('rp');
-  if(!n||!u||!p) return E('re','Заполните все поля');
-  socket.emit('register', {username:u, password:p, displayName:n}, r => {
-    if(r.error) return E('re',r.error);
-    localStorage.setItem('fm_session', JSON.stringify({username:u, password:p}));
-    onAuth(r.user);
-  });
-}
-function onAuth(user){
-  me=user;
-  G('auth-screen').style.display='none';
-  G('app').classList.add('on');
-  updMe(); loadUsers();
-}
-function doLogout(){
-  socket.emit('logout');
-  localStorage.removeItem('fm_session');
-  me=null; cur=null; currentChat=null; users=[]; hist={}; unread={}; prev={};
-  if(currentAudio) { currentAudio.pause(); currentAudio = null; }
-  G('app').classList.remove('on');
-  G('auth-screen').style.display='flex';
-  G('chat-view').style.display='none';
-  G('no-chat').style.display='flex';
-  closeSett();
-}
-function G(id){ return document.getElementById(id); }
-function V(id){ return G(id).value.trim(); }
-function E(id, msg){ G(id).textContent=msg; setTimeout(() => G(id).textContent='', 4000); }
-
-// ── Me UI ──
-function updMe(){
-  const n = me.displayName || me.username;
-  G('me-nm').textContent = n;
-  setAv(G('me-av'), me, '10px');
-  G('sett-un').textContent = n;
-  G('sett-hn').textContent = '@'+me.username;
-  G('sett-nm-sub').textContent = n;
-  setAv(G('sett-av'), me, '20px');
-  if(me.privacy){
-    G('priv-ls').value = me.privacy.lastSeen || 'everyone';
-    G('priv-pp').value = me.privacy.profilePhoto || 'everyone';
-    G('priv-on').value = me.privacy.online || 'everyone';
-  }
-}
-function setAv(el, user, r='50%'){
-  if(!el) return;
-  el.style.background = col(user.username);
-  el.style.borderRadius = r;
-  el.innerHTML = user.avatar
-    ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:${r}">`
-    : `<span>${ini(user.displayName||user.username)}</span>`;
-}
-function ini(n){ return n.split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()).join('')||'?'; }
-function col(s){ const c=['#4f8ef7','#7c4dff','#e91e8c','#00bcd4','#ff6b35','#2eb872','#ff9800','#9c27b0']; let h=0; for(let ch of s) h=(h*31+ch.charCodeAt(0))%c.length; return c[h]; }
-function ft(ts){ const d=new Date(ts),n=new Date(); if(d.toDateString()===n.toDateString()) return d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); if(n-d<7*864e5) return d.toLocaleDateString('ru-RU',{weekday:'short'}); return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}); }
-function ftLong(ts){ if(!ts) return 'давно'; const d=new Date(ts),n=new Date(); if(n-d<60000) return 'только что'; if(n-d<3600000) return Math.floor((n-d)/60000)+' мин назад'; if(d.toDateString()===n.toDateString()) return 'сегодня в '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' в '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function fs(s){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
-
-// ── Users ──
-function loadUsers(){
-  fetch('/api/users').then(r=>r.json()).then(u => { users=u.filter(x=>x.username!==me.username); renderList(); });
-}
-function switchTab(tab, btn){
-  document.querySelectorAll('.sb-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-  renderList(tab);
-}
-function goPeople(){ G('tab-p').click(); }
-function filterList(q){
-  const active = document.querySelector('.sb-tab.active').textContent.includes('Люди') ? 'people' : 'chats';
-  renderList(active, q.toLowerCase().replace(/^@/,''));
-}
-function renderList(mode='chats', q=''){
-  const el=G('clist');
-  const f=users.filter(u => !q || (u.displayName||u.username).toLowerCase().includes(q) || u.username.includes(q));
-  if(!f.length){
-    el.innerHTML=`<div class="empty-list"><div class="empty-list-icon"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div>Никого не найдено</div></div>`;
-    return;
-  }
-  let html='';
-  if(mode==='chats'){
-    const wm=f.filter(u=>prev[u.username]), wo=f.filter(u=>!prev[u.username]);
-    if(wm.length) html+=`<div class="sec-hd">Активные</div>`;
-    wm.forEach(u=>html+=ci(u));
-    if(wo.length&&wm.length) html+=`<div class="sec-hd">Контакты</div>`;
-    wo.forEach(u=>html+=ci(u));
-  } else {
-    html+=`<div class="sec-hd">Все пользователи · ${f.length}</div>`;
-    f.forEach(u=>html+=ci(u));
-  }
-  el.innerHTML=html;
-}
-function ci(u){
-  const p=prev[u.username], badge=(unread[u.username]||0)>0?`<div class="ubadge">${unread[u.username]}</div>`:'';
-  const showOnline = !me?.privacy || me.privacy.online!=='nobody';
-  const online = u.online && showOnline ? `<div class="odot"></div>` : '';
-  const showAv = !u.privacy || u.privacy.profilePhoto==='everyone';
-  const avC = (u.avatar && showAv) ? `<img src="${u.avatar}">` : `<span>${ini(u.displayName||u.username)}</span>`;
-  const time=p?`<span class="ci-time">${ft(p.timestamp)}</span>`:'';
-  let ptx='';
-  if(p) ptx=p.type==='image'?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Фото`:p.type==='voice'?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg> Голосовое`:esc(p.content||'').slice(0,45);
-  else ptx=u.online?`<span style="color:var(--green);font-size:11px">В сети</span>`:(u.lastSeen&&u.privacy?.lastSeen!=='nobody')?`<span style="font-size:11px">был(а) ${ftLong(u.lastSeen)}</span>`:'';
-  return `<div class="chat-item${currentChat===u.username?' active':''}" onclick="openChat('${u.username}')"><div class="ci-av" style="background:${col(u.username)}">${avC}${online}</div><div class="ci-info"><div class="ci-top"><span class="ci-name">${esc(u.displayName||u.username)}</span>${time}</div><div class="ci-bot"><span class="ci-prev">${ptx}</span>${badge}</div></div></div>`;
-}
-
-// ── Open Chat ──
-function openChat(username){
-  currentChat=username; cur=username; unread[username]=0;
-  const u=users.find(x=>x.username===username)||{username,displayName:username};
-  const hav=G('ch-av'); hav.style.background=col(username); setAv(hav,u,'12px');
-  G('ch-name').textContent=u.displayName||username;
-  const st=G('ch-status');
-  if(u.online){ st.textContent='В сети'; st.className='ch-status on'; }
-  else if(u.lastSeen && u.privacy?.lastSeen!=='nobody'){ st.textContent='был(а) '+ftLong(u.lastSeen); st.className='ch-status'; }
-  else { st.textContent='Не в сети'; st.className='ch-status'; }
-  G('no-chat').style.display='none';
-  G('chat-view').style.display='flex';
-  G('chat-area').classList.add('mob');
-  socket.emit('get_messages', {with:username}, msgs => { hist[username]=msgs||[]; renderMsgs(); scrollBot(); });
-  socket.emit('mark_read', {chatWith:username});
-  renderList();
-}
-function closeMob(){ G('chat-area').classList.remove('mob'); }
-
-// ── Render Messages ──
-function renderMsgs(){
-  const area=G('msgs'), msgs=hist[currentChat]||[];
-  if(!msgs.length){ area.innerHTML=`<div style="text-align:center;color:var(--text3);padding:48px 20px;font-size:13px">Начните переписку 👋</div>`; return; }
-  let html='', lastD=null;
-  msgs.forEach(m=>{
-    const d=new Date(m.timestamp).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
-    if(d!==lastD){ html+=`<div class="date-div">${d}</div>`; lastD=d; }
-    html+=bbl(m);
-  });
-  area.innerHTML=html;
-  bindEvts(area);
-}
-function bbl(m){
-  const out=m.from===me.username, u=users.find(x=>x.username===m.from)||{username:m.from,displayName:m.from};
-  const showAv = !u.privacy || u.privacy.profilePhoto==='everyone';
-  const avC=(u.avatar && showAv)?`<img src="${u.avatar}">`:`<span>${ini(u.displayName||u.username)}</span>`;
-  const time=ft(m.timestamp), checks=out?`<span class="chk">${m.read?DBLCHK:CHK}</span>`:'';
-  let reply='';
-  if(m.replyTo){
-    const orig=(hist[currentChat]||[]).find(x=>x.id===m.replyTo);
-    if(orig){ const rn=orig.from===me.username?'Вы':(users.find(x=>x.username===orig.from)?.displayName||orig.from); reply=`<div class="bbl-reply"><div class="bbl-rname">${rn}</div><div class="bbl-rtext">${orig.type==='image'?'Фото':orig.type==='voice'?'Голосовое':esc(orig.content||'').slice(0,60)}</div></div>`; }
-  }
-  let body='';
-  if(m.type==='image') body=`<img class="bbl-img" src="${m.content}" alt="фото">`;
-  else if(m.type==='voice'){ const bars=Array.from({length:22},()=>`<span style="height:${5+Math.floor(Math.random()*16)}px"></span>`).join(''); body=`<div class="voice-msg"><button class="voice-play" onclick="playV(this,'${m.content}')">${PLAY_ICO}</button><div class="voice-waves">${bars}</div><span class="voice-dur">${m.duration||'0:00'}</span></div>`; }
-  else body=`<div class="bbl-text">${esc(m.content||'').replace(/\n/g,'<br>')}</div>`;
-  const avEl=!out?`<div class="msg-av" style="background:${col(m.from)}">${avC}</div>`:'';
-  return `<div class="mrow ${out?'out':'in'}" id="mw-${m.id}">${avEl}<div class="bubble" data-id="${m.id}" data-from="${m.from}" data-content="${esc(m.content||'')}">${reply}${body}<div class="bbl-meta">${time}${checks}</div></div></div>`;
-}
-function bindEvts(el){
-  el.querySelectorAll('.bubble').forEach(b => b.addEventListener('contextmenu', e => { e.preventDefault(); showCtx(e, b.dataset.id); }));
-  el.querySelectorAll('.bbl-img').forEach(img => img.addEventListener('click', () => { G('lbi').src=img.src; G('lb').classList.add('on'); }));
-}
-function scrollBot(){ const a=G('msgs'); setTimeout(()=>a.scrollTop=a.scrollHeight, 40); }
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Send (FIX ДУБЛИРОВАНИЯ) ──
-function pushMsg(msg){
-  if(!hist[currentChat]) hist[currentChat]=[];
-  
-  // ФИКС ДУБЛЕЙ: проверяем, нет ли уже сообщения с таким ID
-  if(hist[currentChat].some(m => m.id === msg.id)) return;
+/* removed duplicate definition */
 
-  hist[currentChat].push(msg); prev[currentChat]=msg;
-  const area=G('msgs'), ph=area.querySelector('[style*="Начните"]');
-  if(ph) ph.remove();
-  const d=document.createElement('div'); d.innerHTML=bbl(msg);
-  const el=d.firstElementChild; area.appendChild(el);
-  bindEvts(el.parentElement||area); scrollBot(); renderList();
-}
+/* removed duplicate definition */
 
-function sendMsg(){
-  if(!currentChat) return;
-  if(attachImg){ sendImg(); return; }
-  const inp=G('mi'), text=inp.value.trim();
-  if(!text) return;
-  const d={to:currentChat, content:text, type:'text'};
-  if(replyMsg) d.replyTo=replyMsg.id;
-  
-  socket.emit('send_message', d, r => { 
-    if(r?.message) pushMsg(r.message); 
-  });
-  
-  inp.value=''; resize(inp); cancelReply(); clearTyp();
-}
-
-function sendImg(){
-  socket.emit('send_message', {to:currentChat, content:attachImg, type:'image', replyTo:replyMsg?.id||null}, r => { 
-      if(r?.message) pushMsg(r.message); 
-  });
-  rmImg(); cancelReply();
-}
+/* removed duplicate definition */
 
 // ── Получение сообщений (FIX ДУБЛИРОВАНИЯ) ──
-function onMsg(msg){
-  const cu = msg.from === me.username ? msg.to : msg.from;
-  if(!hist[cu]) hist[cu]=[];
-  
-  // ФИКС ДУБЛЕЙ: игнорируем, если уже в массиве
-  if(hist[cu].some(m => m.id === msg.id)) return;
+/* removed duplicate definition */
 
-  if(cu === currentChat){
-      pushMsg(msg);
-      socket.emit('mark_read',{chatWith:cu});
-  } else {
-      hist[cu].push(msg); 
-      prev[cu]=msg;
-      if(msg.from !== me.username){
-          unread[msg.from]=(unread[msg.from]||0)+1; 
-          showToast(msg); 
-          if(typeof sendBrowserNotif === 'function') sendBrowserNotif(msg);
-      }
-  }
-  renderList();
-}
-
-function mkey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMsg(); } }
-function handleImg(e){ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{ attachImg=ev.target.result; G('ithumb').src=attachImg; G('is').classList.add('on'); }; r.readAsDataURL(f); e.target.value=''; }
-function rmImg(){ attachImg=null; G('is').classList.remove('on'); }
-function resize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Typing ──
-function onType(){ if(!currentChat) return; if(!typing){ typing=true; socket.emit('typing',{to:currentChat,isTyping:true}); } clearTimeout(tyTimer); tyTimer=setTimeout(clearTyp, 2500); }
-function clearTyp(){ if(typing){ typing=false; socket.emit('typing',{to:currentChat,isTyping:false}); } }
-function onTypingEvt({from,isTyping:t}){ if(from!==currentChat) return; const area=G('msgs'), ex=document.getElementById('tind'); if(t&&!ex){ const d=document.createElement('div'); d.id='tind'; d.className='typing-row'; d.innerHTML=`<div class="tdots"><span></span><span></span><span></span></div><span>печатает...</span>`; area.appendChild(d); scrollBot(); } else if(!t&&ex) ex.remove(); }
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */){ if(from!==currentChat) return; /* removed duplicate definition */ if(t&&!ex){ /* removed duplicate definition */ d.id='tind'; d.className='typing-row'; d.innerHTML=`<div class="tdots"><span></span><span></span><span></span></div><span>печатает...</span>`; area.appendChild(d); scrollBot(); } else if(!t&&ex) ex.remove(); }
 
 // ── Reply/Delete ──
-function cancelReply(){ replyMsg=null; G('rs').classList.remove('on'); }
-function rmEl(id){ G('mw-'+id)?.remove(); }
-function markRead(by){ if(by!==currentChat) return; (hist[currentChat]||[]).forEach(m=>{ if(m.from===me.username) m.read=true; }); renderMsgs(); }
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Context ──
-function showCtx(e, id){ ctxMsg=(hist[currentChat]||[]).find(m=>m.id===id); const c=G('ctx'); c.style.left=Math.min(e.clientX,window.innerWidth-200)+'px'; c.style.top=Math.min(e.clientY,window.innerHeight-130)+'px'; c.classList.add('on'); G('ctx-del').style.display=ctxMsg?.from===me.username?'':'none'; }
+/* removed duplicate definition */
 document.addEventListener('click', () => G('ctx').classList.remove('on'));
-function ctxReply(){ if(!ctxMsg) return; replyMsg=ctxMsg; const n=ctxMsg.from===me.username?'Вы':(users.find(u=>u.username===ctxMsg.from)?.displayName||ctxMsg.from); G('rs-nm').textContent=n; G('rs-tx').textContent=ctxMsg.type==='image'?'Фото':ctxMsg.type==='voice'?'Голосовое':ctxMsg.content?.slice(0,80); G('rs').classList.add('on'); G('mi').focus(); }
-function ctxCopy(){ if(ctxMsg?.content) navigator.clipboard.writeText(ctxMsg.content).catch(()=>{}); }
-function ctxDel(){ if(!ctxMsg) return; socket.emit('delete_message', {msgId:ctxMsg.id,chatWith:currentChat}, r=>{ if(r?.ok){ hist[currentChat]=(hist[currentChat]||[]).filter(m=>m.id!==ctxMsg.id); rmEl(ctxMsg.id); } }); }
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Emoji ──
-function toggleEmoji(){ const p=G('ep'); if(!p.innerHTML) p.innerHTML=`<div class="emoji-grid">${EMOJIS.map(e=>`<div class="emoji-it" onclick="insEmoji('${e}')">${e}</div>`).join('')}</div>`; p.classList.toggle('on'); }
-function insEmoji(e){ const inp=G('mi'), pos=inp.selectionStart; inp.value=inp.value.slice(0,pos)+e+inp.value.slice(pos); inp.selectionStart=inp.selectionEnd=pos+e.length; inp.focus(); G('ep').classList.remove('on'); }
+/* removed duplicate definition */
+/* removed duplicate definition */
 document.addEventListener('click', e=>{ if(!e.target.closest('.iwrap')) G('ep')?.classList.remove('on'); });
 
 // ── Voice ──
-async function toggleRec(){
-  if(recorder&&recorder.state==='recording'){ recorder.stop(); return; }
-  try{
-    const s=await navigator.mediaDevices.getUserMedia({audio:true});
-    recorder=new MediaRecorder(s); chunks=[]; let sec=0;
-    const btn=G('mic-btn'); btn.classList.add('rec');
-    recInt=setInterval(()=>{ sec++; btn.title=`Запись: ${fs(sec)}`; }, 1000);
-    recorder.ondataavailable=e=>chunks.push(e.data);
-    recorder.onstop=()=>{
-      clearInterval(recInt); btn.classList.remove('rec'); btn.title='Голосовое сообщение';
-      const blob=new Blob(chunks,{type:'audio/webm'}); const r=new FileReader();
-      r.onload=ev=>{ socket.emit('send_message',{to:currentChat,content:ev.target.result,type:'voice',duration:fs(sec),replyTo:replyMsg?.id||null},res=>{ if(res?.message) pushMsg(res.message); }); };
-      r.readAsDataURL(blob); s.getTracks().forEach(t=>t.stop()); cancelReply();
-    };
-    recorder.start();
-  }catch(e){ alert('Нет доступа к микрофону'); }
-}
+async /* removed duplicate definition */
 
 // ── Player (FIX НАЛОЖЕНИЯ ЗВУКА И ИКОНОК) ──
-function playV(btn, src){ 
-    // Если нажали на тот же самый, который сейчас играет
-    if(currentAudioBtn === btn && !currentAudio.paused) {
-        currentAudio.pause();
-        btn.innerHTML = PLAY_ICO;
-        return;
-    }
-
-    // Останавливаем предыдущий, если есть
-    if(currentAudio) {
-        currentAudio.pause();
-        if(currentAudioBtn) currentAudioBtn.innerHTML = PLAY_ICO;
-    }
-
-    currentAudio = new Audio(src);
-    currentAudioBtn = btn;
-    btn.innerHTML = PAUSE_ICO;
-    currentAudio.play();
-    
-    currentAudio.onended = () => { 
-        btn.innerHTML = PLAY_ICO; 
-        currentAudio = null;
-        currentAudioBtn = null;
-    }; 
-}
+/* removed duplicate definition */
 
 // ── Status ──
-function setStatus(username, online, lastSeen){
-  const u=users.find(x=>x.username===username);
-  if(u){ u.online=online; if(!online&&lastSeen) u.lastSeen=lastSeen; }
-  if(currentChat===username){
-    const s=G('ch-status');
-    if(online){ s.textContent='В сети'; s.className='ch-status on'; }
-    else if(lastSeen&&u?.privacy?.lastSeen!=='nobody'){ s.textContent='был(а) '+ftLong(lastSeen); s.className='ch-status'; }
-    else { s.textContent='Не в сети'; s.className='ch-status'; }
-  }
-  renderList();
-}
-function onUserUpd({username, displayName, avatar, bio, privacy}){
-  const u=users.find(x=>x.username===username);
+/* removed duplicate definition */
+/* removed duplicate definition */){
+  /* removed duplicate definition */
   if(u){ u.displayName=displayName; u.avatar=avatar; if(bio!==undefined) u.bio=bio; if(privacy) u.privacy=privacy; }
   if(username===me.username){ me.displayName=displayName; me.avatar=avatar; if(bio!==undefined) me.bio=bio; if(privacy) me.privacy=privacy; updMe(); }
   renderList();
 }
 
 // ── Settings ──
-function openSett(){ G('sp').classList.add('on'); G('sef').classList.remove('on'); }
-function closeSett(){ G('sp').classList.remove('on'); }
-function toggleEdit(){
-  const f=G('sef');
-  if(!f.classList.contains('on')){ G('en').value=me.displayName||''; G('eb').value=me.bio||''; f.classList.add('on'); }
-  else f.classList.remove('on');
-}
-function saveProf(){
-  const n=G('en').value.trim(), b=G('eb').value.trim();
-  socket.emit('update_profile', {displayName:n, bio:b}, r=>{ if(r?.ok){ me=r.user; updMe(); G('sef').classList.remove('on'); } });
-}
-function chgAv(e){
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=ev=>{ fetch('/api/avatar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:me.username,avatar:ev.target.result})}).then(()=>{ me.avatar=ev.target.result; updMe(); }); };
-  r.readAsDataURL(f); e.target.value='';
-}
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 function savePriv(key, val){
-  const privacy={...me.privacy, [key]:val};
+  /* removed duplicate definition */
   socket.emit('update_profile', {privacy}, r=>{ if(r?.ok) me=r.user; });
 }
 
@@ -1669,9 +846,9 @@ async function toggleNotif(on){
 function sendBrowserNotif(msg){
   if(!notifEnabled || Notification.permission!=='granted') return;
   if(document.hasFocus()) return;
-  const u=users.find(x=>x.username===msg.from)||{username:msg.from,displayName:msg.from};
-  const body=msg.type==='image'?'Фото':msg.type==='voice'?'Голосовое':msg.content||'';
-  const n=new Notification(u.displayName||u.username, {body, icon:'/favicon.ico'});
+  /* removed duplicate definition */
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   n.onclick=()=>{ window.focus(); openChat(msg.from); n.close(); };
   setTimeout(()=>n.close(), 5000);
 }
@@ -1688,7 +865,7 @@ function openChangePwd(){
 }
 function closePwdModal(){ G('pwd-modal').classList.remove('on'); }
 function submitPwd(){
-  const old=G('pwd-old').value.trim(), nw=G('pwd-new').value.trim(), nw2=G('pwd-new2').value.trim();
+  /* removed duplicate definition */
   G('pwd-err').textContent=''; G('pwd-ok').textContent='';
   if(!old||!nw||!nw2) return G('pwd-err').textContent='Заполните все поля';
   if(nw!==nw2) return G('pwd-err').textContent='Пароли не совпадают';
@@ -1707,205 +884,121 @@ function submitPwd(){
 }
 
 // ── Profile Modal ──
-function showPM(username){
-  if(!username) return;
-  const u=users.find(x=>x.username===username)||{username,displayName:username};
-  pmUser=username;
-  const av=G('pmav'); av.style.background=col(username);
-  const showAv=!u.privacy||u.privacy.profilePhoto==='everyone';
-  setAv(av, {...u, avatar: showAv?u.avatar:null}, '16px');
-  G('pmnm').textContent=u.displayName||username;
-  G('pmhn').textContent='@'+username;
-  const st=G('pmst');
-  if(u.online){ st.textContent='В сети'; st.className='pm-status on'; }
-  else if(u.lastSeen&&u.privacy?.lastSeen!=='nobody'){ st.textContent='был(а) '+ftLong(u.lastSeen); st.className='pm-status off'; }
-  else { st.textContent='Не в сети'; st.className='pm-status off'; }
-  G('pmbio').textContent=u.bio||'Нет описания';
-  G('pmo').classList.add('on');
-}
-function closePM(){ G('pmo').classList.remove('on'); }
-function chatFromPM(){ closePM(); openChat(pmUser); }
-function callFromPM(t){ closePM(); openChat(pmUser); setTimeout(()=>startCall(t), 300); }
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Toast ──
-function showToast(msg){
-  const u=users.find(x=>x.username===msg.from)||{username:msg.from,displayName:msg.from};
-  toastUser=msg.from;
-  const av=G('tav'); av.style.background=col(msg.from); av.style.borderRadius='11px'; setAv(av,u,'11px');
-  G('tnm').textContent=u.displayName||u.username;
-  G('ttx').textContent=msg.type==='image'?'📷 Фото':msg.type==='voice'?'🎤 Голосовое':(msg.content||'').slice(0,60);
-  const t=G('toast'); t.classList.add('on');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'), 4500);
-}
-function openToast(){ G('toast').classList.remove('on'); if(toastUser) openChat(toastUser); }
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ─────────────── CALLS ───────────────
-const ICE = { iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}] };
+/* removed duplicate definition */
 
-async function startCall(type){
-  if(!currentChat){ alert('Сначала откройте чат'); return; }
-  const targetUser = users.find(x=>x.username===currentChat);
-  if(!targetUser?.online){ showCallMsg('Пользователь не в сети'); return; }
-  callKind=type; callUser=currentChat;
-  const u=users.find(x=>x.username===currentChat)||{username:currentChat,displayName:currentChat};
-  showCallUI(u, type, 'out');
-  try{
-    localStream=await navigator.mediaDevices.getUserMedia(type==='video'?{video:true,audio:true}:{audio:true});
-    if(type==='video'){ G('localVideo').srcObject=localStream; G('va').classList.add('on'); }
-    pc=new RTCPeerConnection(ICE);
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-    pc.ontrack=e=>{ G('remoteVideo').srcObject=e.streams[0]; };
-    pc.onicecandidate=e=>{ if(e.candidate) socket.emit('ice_candidate',{to:callUser,candidate:e.candidate}); };
-    pc.onconnectionstatechange=()=>{ if(pc&&(pc.connectionState==='failed'||pc.connectionState==='disconnected')) callEndedRemote(); };
-    const offer=await pc.createOffer(); await pc.setLocalDescription(offer);
-    socket.emit('call_user', {to:callUser, offer, callType:type});
-  }catch(e){
-    cleanCall();
-    alert('Нет доступа к '+( type==='video'?'камере/':'')+'микрофону');
-  }
-}
+async /* removed duplicate definition */
 
-function onInCall({from, offer, callType:ct}){
+/* removed duplicate definition */){
   if(pc){ socket.emit('call_busy',{to:from}); return; }
   incomingOffer=offer; callUser=from; callKind=ct;
-  const u=users.find(x=>x.username===from)||{username:from,displayName:from};
+  /* removed duplicate definition */
   showCallUI(u, ct, 'in');
 }
 
-async function acceptCall(){
-  const offer=incomingOffer; incomingOffer=null;
-  try{
-    localStream=await navigator.mediaDevices.getUserMedia(callKind==='video'?{video:true,audio:true}:{audio:true});
-    if(callKind==='video'){ G('localVideo').srcObject=localStream; G('va').classList.add('on'); }
-    pc=new RTCPeerConnection(ICE);
-    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-    pc.ontrack=e=>{ G('remoteVideo').srcObject=e.streams[0]; };
-    pc.onicecandidate=e=>{ if(e.candidate) socket.emit('ice_candidate',{to:callUser,candidate:e.candidate}); };
-    pc.onconnectionstatechange=()=>{ if(pc&&(pc.connectionState==='failed'||pc.connectionState==='disconnected')) callEndedRemote(); };
-    await pc.setRemoteDescription(new RTCSessionDescription(offer));
-    const answer=await pc.createAnswer(); await pc.setLocalDescription(answer);
-    socket.emit('call_answer', {to:callUser, answer});
-    startCallTimer();
-    const u=users.find(x=>x.username===callUser)||{username:callUser,displayName:callUser};
-    showCallUI(u, callKind, 'active');
-  }catch(e){ cleanCall(); }
-}
+async /* removed duplicate definition */
 
-async function onCallAns({answer}){
+async /* removed duplicate definition */){
   try{
     await pc.setRemoteDescription(new RTCSessionDescription(answer));
     startCallTimer();
-    const u=users.find(x=>x.username===callUser)||{username:callUser,displayName:callUser};
+    /* removed duplicate definition */
     showCallUI(u, callKind, 'active');
   }catch(e){}
 }
 
-function endCall(){ socket.emit('call_end',{to:callUser}); cleanCall(); }
-function rejectCall(){ socket.emit('call_reject',{to:callUser}); cleanCall(); }
+/* removed duplicate definition */
+/* removed duplicate definition */
 function callEndedRemote(){ callSt('Звонок завершён', true); }
 
-function cleanCall(){
-  if(pc){ pc.close(); pc=null; }
-  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
-  incomingOffer=null;
-  clearInterval(callInt); callSecs=0;
-  G('ctmr').style.display='none';
-  G('va').classList.remove('on');
-  G('remoteVideo').srcObject=null;
-  G('localVideo').srcObject=null;
-  G('co').classList.remove('on');
-  G('cav').classList.remove('ringing');
-}
+/* removed duplicate definition */
 
-function callSt(msg, close){
-  G('cst').textContent=msg;
-  if(close) setTimeout(cleanCall, 2000);
-}
+/* removed duplicate definition */
 
 function showCallMsg(msg){
   const old=toastUser;
   G('tnm').textContent='Звонок';
   G('ttx').textContent=msg;
-  const t=G('toast'); t.classList.add('on');
+  /* removed duplicate definition */ t.classList.add('on');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ t.classList.remove('on'); toastUser=old; }, 3000);
 }
 
-function startCallTimer(){
-  callSecs=0;
-  const el=G('ctmr'); el.style.display='block';
-  el.textContent=fs(0);
-  callInt=setInterval(()=>{ callSecs++; el.textContent=fs(callSecs); }, 1000);
-}
+/* removed duplicate definition */
 
-function showCallUI(u, type, mode){
-  const av=G('cav'); av.style.background=col(u.username);
-  setAv(av, u, '22px');
-  G('cnm').textContent=u.displayName||u.username;
-  const tl=type==='video'?'Видеозвонок':'Аудиозвонок';
-  let st='', btns='';
+/* removed duplicate definition */
 
-  if(mode==='out'){
-    st=tl+' · Вызов...';
-    av.classList.add('ringing');
-    btns=`<div class="call-btn-wrap">
-      <button class="cbtn end-call" onclick="endCall()">${PHONE_ICO}</button>
-      <span>Завершить</span>
-    </div>`;
-  } else if(mode==='in'){
-    st='Входящий · '+tl.toLowerCase();
-    av.classList.add('ringing');
-    G('cst').textContent=st;
-    G('cbtns').innerHTML=`
-      <div class="call-btn-wrap"><button class="cbtn decline" onclick="rejectCall()">${PHONE_ICO}</button><span>Отклонить</span></div>
-      <div class="call-btn-wrap"><button class="cbtn accept" onclick="acceptCall()">${PHONE_ICO}</button><span>Принять</span></div>
-    `;
-    G('co').classList.add('on');
-    return;
-  } else { // active
-    st=tl; av.classList.remove('ringing');
-    btns=`
-      <div class="call-btn-wrap">
-        <button class="cbtn neutral" id="cbmute" onclick="tMute(this)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </button>
-        <span>Микрофон</span>
-      </div>
-      <div class="call-btn-wrap"><button class="cbtn end-call" onclick="endCall()">${PHONE_ICO}</button><span>Завершить</span></div>
-      ${type==='video'?`<div class="call-btn-wrap">
-        <button class="cbtn neutral" id="cbcam" onclick="tCam(this)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-        </button>
-        <span>Камера</span>
-      </div>`:''}
-    `;
-  }
-  G('cst').textContent=st;
-  G('cbtns').innerHTML=btns;
-  G('co').classList.add('on');
-}
-
-function tMute(btn){
-  if(!localStream) return;
-  const t=localStream.getAudioTracks()[0];
-  if(!t) return;
-  t.enabled=!t.enabled;
-  btn.classList.toggle('muted', !t.enabled);
-  btn.title=t.enabled?'Выключить микрофон':'Включить микрофон';
-}
-function tCam(btn){
-  if(!localStream) return;
-  const t=localStream.getVideoTracks()[0];
-  if(!t) return;
-  t.enabled=!t.enabled;
-  btn.classList.toggle('muted', !t.enabled);
-  btn.title=t.enabled?'Выключить камеру':'Включить камеру';
-}
+/* removed duplicate definition */
+/* removed duplicate definition */
 
 // ── Periodic refresh ──
 setInterval(()=>{ if(me) loadUsers(); }, 30000);
 init();
 
 </script>
+
+<script>
+// ===== FIXED OVERRIDES (merged from index_fixed) =====
+
+// Safe escape
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Voice playback fix (no overlapping audio)
+const __PLAY_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+const __PAUSE_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+
+function playV(btn){
+  const src = btn.dataset?.src || btn.getAttribute("data-src");
+  document.querySelectorAll('.voice-play[data-playing="1"]').forEach(b=>{
+    if(b!==btn){
+      b.dataset.playing='0';
+      b.innerHTML = __PLAY_ICO;
+      if(b._audio){ b._audio.pause(); b._audio.currentTime = 0; }
+    }
+  });
+  if(!btn._audio){
+    btn._audio = new Audio(src);
+    btn._audio.onended = ()=>{
+      btn.dataset.playing='0';
+      btn.innerHTML = __PLAY_ICO;
+    };
+  }
+  if(btn.dataset.playing === '1'){
+    btn._audio.pause();
+    btn.dataset.playing='0';
+    btn.innerHTML = __PLAY_ICO;
+  } else {
+    btn._audio.play();
+    btn.dataset.playing='1';
+    btn.innerHTML = __PAUSE_ICO;
+  }
+}
+
+// Emoji fix (prevent instant closing)
+function toggleEmoji(e){
+  if(e && e.stopPropagation) e.stopPropagation();
+  const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+  if(!p) return;
+  p.classList.toggle('on');
+}
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.emoji-picker') && !e.target.closest('.emoji-btn')){
+    const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+    if(p) p.classList.remove('on');
+  }
+});
+
+</script>
+
 </body>
 </html>
 
@@ -2479,14 +1572,14 @@ const CHK = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke=
 const DBLCHK = `<svg width="16" height="12" viewBox="0 0 28 14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 7 7 12 14 4"/><polyline points="14 7 19 12 26 4"/></svg>`;
 const PLAY_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
 const PAUSE_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
-const EMOJIS = ['😀','😂','🥰','😍','🤔','😎','😭','😤','🥺','🤣','❤️','🔥','👍','👎','🎉','✨','💯','🙏','😊','🤗','😏','😅','🤦','🤷','💪','👀','🫡','🫂','💀','🤙','💬','🚀','🌟','🎮','🍕','🎵','🌈','🌙','⚡','🎯'];
+/* removed duplicate definition */
 
-let socket, me=null, cur=null;
-let users=[], hist={}, unread={}, prev={};
+/* removed duplicate definition */
+/* removed duplicate definition */
 let replyMsg=null, ctxMsg=null;
 let tyTimer=null, typing=false;
 let recorder=null, chunks=[], recInt=null;
-let pc=null, stream=null;
+/* removed duplicate definition */
 let callInt=null, callSecs=0, callUser=null, callKind='audio';
 let attachImg=null, toastTimer=null, toastUser=null, pmUser=null;
 
@@ -2513,38 +1606,21 @@ function authTab(t){
   G('lf').style.display=t==='login'?'':'none';
   G('rf').style.display=t==='reg'?'':'none';
 }
-function doLogin(){
-  const u=V('lu'),p=V('lp');
-  if(!u||!p)return E('le','Заполните все поля');
-  socket.emit('login',{username:u,password:p},r=>r.error?E('le',r.error):onAuth(r.user));
-}
+/* removed duplicate definition */
 function doReg(){
-  const n=V('rn'),u=V('ru'),p=V('rp');
+  /* removed duplicate definition */
   if(!n||!u||!p)return E('re','Заполните все поля');
   socket.emit('register',{username:u,password:p,displayName:n},r=>r.error?E('re',r.error):onAuth(r.user));
 }
-function onAuth(user){
-  me=user;
-  G('auth-screen').style.display='none';
-  G('app').classList.add('on');
-  updMe(); loadUsers();
-}
-function doLogout(){
-  socket.emit('logout');
-  me=null;cur=null;users=[];hist={};unread={};prev={};
-  G('app').classList.remove('on');
-  G('auth-screen').style.display='flex';
-  G('chat-view').style.display='none';
-  G('no-chat').style.display='flex';
-  closeSett();
-}
-function G(id){return document.getElementById(id);}
+/* removed duplicate definition */
+/* removed duplicate definition */
+/* removed duplicate definition */
 function V(id){return G(id).value.trim();}
 function E(id,msg){G(id).textContent=msg;setTimeout(()=>G(id).textContent='',4000);}
 
 // Me UI
 function updMe(){
-  const n=me.displayName||me.username;
+  /* removed duplicate definition */
   G('me-nm').textContent=n;
   setAv(G('me-av'),me,'10px');
   G('sett-un').textContent=n;
@@ -2560,30 +1636,24 @@ function setAv(el,user,r='50%'){
   el.innerHTML=user.avatar?`<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:${r}">`:`<span>${ini(user.displayName||user.username)}</span>`;
 }
 function ini(n){return n.split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()).join('')||'?';}
-function col(s){const c=['#4f8ef7','#7c4dff','#e91e8c','#00bcd4','#ff6b35','#2eb872','#ff9800','#9c27b0'];let h=0;for(let ch of s)h=(h*31+ch.charCodeAt(0))%c.length;return c[h];}
-function ft(ts){const d=new Date(ts),n=new Date();if(d.toDateString()===n.toDateString())return d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});if(n-d<7*864e5)return d.toLocaleDateString('ru-RU',{weekday:'short'});return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});}
+function col(s){/* removed duplicate definition */for(let ch of s)h=(h*31+ch.charCodeAt(0))%c.length;return c[h];}
+function ft(ts){/* removed duplicate definition */if(d.toDateString()===n.toDateString())return d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});if(n-d<7*864e5)return d.toLocaleDateString('ru-RU',{weekday:'short'});return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fs(s){return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
 
 // Users
-function loadUsers(){
-  fetch('/api/users').then(r=>r.json()).then(u=>{users=u.filter(x=>x.username!==me.username);renderList();});
-}
-function switchTab(tab,btn){
-  document.querySelectorAll('.sb-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-  renderList(tab);
-}
+/* removed duplicate definition */
+/* removed duplicate definition */
 function goPeople(){G('tab-p').click();}
 function filterList(q){
-  const active=document.querySelector('.sb-tab.active').textContent.includes('Люди')?'people':'chats';
+  /* removed duplicate definition */
   renderList(active,q.toLowerCase());
 }
 function renderList(mode='chats',q=''){
-  const el=G('clist');
-  const f=users.filter(u=>!q||(u.displayName||u.username).toLowerCase().includes(q)||u.username.includes(q));
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   if(!f.length){el.innerHTML=`<div class="empty-list"><div class="empty-list-icon"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div>Никого нет</div></div>`;return;}
-  let html='';
+  /* removed duplicate definition */
   if(mode==='chats'){
     const wm=f.filter(u=>prev[u.username]),wo=f.filter(u=>!prev[u.username]);
     if(wm.length)html+=`<div class="sec-hd">Активные</div>`;
@@ -2597,10 +1667,10 @@ function renderList(mode='chats',q=''){
   el.innerHTML=html;
 }
 function ci(u){
-  const p=prev[u.username],badge=(unread[u.username]||0)>0?`<div class="ubadge">${unread[u.username]}</div>`:'';
+  /* removed duplicate definition */
   const online=u.online?`<div class="odot"></div>`:'';
-  const avC=u.avatar?`<img src="${u.avatar}">`:`<span>${ini(u.displayName||u.username)}</span>`;
-  const time=p?`<span class="ci-time">${ft(p.timestamp)}</span>`:'';
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   let ptx='';
   if(p)ptx=p.type==='image'?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Фото`:p.type==='voice'?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>Голосовое`:esc(p.content||'').slice(0,45);
   else ptx=u.online?`<span style="color:var(--green);font-size:11px">В сети</span>`:'';
@@ -2608,28 +1678,16 @@ function ci(u){
 }
 
 // Open Chat
-function openChat(username){
-  cur=username; unread[username]=0;
-  const u=users.find(x=>x.username===username)||{username,displayName:username};
-  const hav=G('ch-av'); hav.style.background=col(username); setAv(hav,u,'12px');
-  G('ch-name').textContent=u.displayName||username;
-  const st=G('ch-status'); st.textContent=u.online?'В сети':'Не в сети'; st.className='ch-status'+(u.online?' on':'');
-  G('no-chat').style.display='none';
-  G('chat-view').style.display='flex';
-  G('chat-area').classList.add('mob');
-  socket.emit('get_messages',{with:username},msgs=>{hist[username]=msgs||[];renderMsgs();scrollBot();});
-  socket.emit('mark_read',{chatWith:username});
-  renderList();
-}
+/* removed duplicate definition */
 function closeMob(){G('chat-area').classList.remove('mob');}
 
 // Render Messages
 function renderMsgs(){
-  const area=G('msgs'),msgs=hist[cur]||[];
+  /* removed duplicate definition */
   if(!msgs.length){area.innerHTML=`<div style="text-align:center;color:var(--text3);padding:48px 20px;font-size:13px">Начните переписку 👋</div>`;return;}
-  let html='',lastD=null;
+  /* removed duplicate definition */
   msgs.forEach(m=>{
-    const d=new Date(m.timestamp).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+    /* removed duplicate definition */
     if(d!==lastD){html+=`<div class="date-div">${d}</div>`;lastD=d;}
     html+=bbl(m);
   });
@@ -2639,15 +1697,15 @@ function renderMsgs(){
 function bbl(m){
   const out=m.from===me.username,u=users.find(x=>x.username===m.from)||{username:m.from,displayName:m.from};
   const avC=u.avatar?`<img src="${u.avatar}">`:`<span>${ini(u.displayName||u.username)}</span>`;
-  const time=ft(m.timestamp),checks=out?`<span class="chk">${m.read?DBLCHK:CHK}</span>`:'';
+  /* removed duplicate definition */
   let reply='';
   if(m.replyTo){
-    const orig=(hist[cur]||[]).find(x=>x.id===m.replyTo);
+    /* removed duplicate definition */
     if(orig){const rn=orig.from===me.username?'Вы':(users.find(x=>x.username===orig.from)?.displayName||orig.from);reply=`<div class="bbl-reply"><div class="bbl-rname">${rn}</div><div class="bbl-rtext">${orig.type==='image'?'Фото':orig.type==='voice'?'Голосовое':esc(orig.content||'').slice(0,60)}</div></div>`;}
   }
   let body='';
   if(m.type==='image')body=`<img class="bbl-img" src="${m.content}" alt="фото">`;
-  else if(m.type==='voice'){const bars=Array.from({length:22},()=>`<span style="height:${5+Math.floor(Math.random()*16)}px"></span>`).join('');body=`<div class="voice-msg"><button class="voice-play" onclick="playV(this,'${m.content}')">${PLAY_ICO}</button><div class="voice-waves">${bars}</div><span class="voice-dur">${m.duration||'0:00'}</span></div>`;}
+  else if(m.type==='voice'){/* removed duplicate definition */body=`<div class="voice-msg"><button class="voice-play" onclick="playV(this,'${m.content}')">${PLAY_ICO}</button><div class="voice-waves">${bars}</div><span class="voice-dur">${m.duration||'0:00'}</span></div>`;}
   else body=`<div class="bbl-text">${esc(m.content||'').replace(/\n/g,'<br>')}</div>`;
   const avEl=!out?`<div class="msg-av" style="background:${col(m.from)}">${avC}</div>`:'';
   return`<div class="mrow ${out?'out':'in'}" id="mw-${m.id}">${avEl}<div class="bubble" data-id="${m.id}" data-from="${m.from}" data-content="${esc(m.content||'')}">${reply}${body}<div class="bbl-meta">${time}${checks}</div></div></div>`;
@@ -2656,19 +1714,10 @@ function bindEvts(el){
   el.querySelectorAll('.bubble').forEach(b=>b.addEventListener('contextmenu',e=>{e.preventDefault();showCtx(e,b.dataset.id);}));
   el.querySelectorAll('.bbl-img').forEach(img=>img.addEventListener('click',()=>{G('lbi').src=img.src;G('lb').classList.add('on');}));
 }
-function scrollBot(){const a=G('msgs');setTimeout(()=>a.scrollTop=a.scrollHeight,40);}
+function scrollBot(){/* removed duplicate definition */setTimeout(()=>a.scrollTop=a.scrollHeight,40);}
 
 // Send
-function sendMsg(){
-  if(!cur)return;
-  if(attachImg){sendImg();return;}
-  const inp=G('mi'),text=inp.value.trim();
-  if(!text)return;
-  const d={to:cur,content:text,type:'text'};
-  if(replyMsg)d.replyTo=replyMsg.id;
-  socket.emit('send_message',d,r=>{if(r?.message)pushMsg(r.message);});
-  inp.value='';resize(inp);cancelReply();clearTyp();
-}
+/* removed duplicate definition */
 function sendImg(){
   socket.emit('send_message',{to:cur,content:attachImg,type:'image',replyTo:replyMsg?.id||null},r=>{if(r?.message)pushMsg(r.message);});
   rmImg();cancelReply();
@@ -2676,10 +1725,10 @@ function sendImg(){
 function pushMsg(msg){
   if(!hist[cur])hist[cur]=[];
   hist[cur].push(msg);prev[cur]=msg;
-  const area=G('msgs'),ph=area.querySelector('[style*="Начните"]');
+  /* removed duplicate definition */
   if(ph)ph.remove();
-  const d=document.createElement('div');d.innerHTML=bbl(msg);
-  const el=d.firstElementChild;area.appendChild(el);
+  /* removed duplicate definition */d.innerHTML=bbl(msg);
+  /* removed duplicate definition */area.appendChild(el);
   bindEvts(el.parentElement||area);scrollBot();renderList();
 }
 function onMsg(msg){
@@ -2690,61 +1739,61 @@ function onMsg(msg){
   renderList();
 }
 function mkey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
-function handleImg(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{attachImg=ev.target.result;G('ithumb').src=attachImg;G('is').classList.add('on');};r.readAsDataURL(f);e.target.value='';}
+function handleImg(e){/* removed duplicate definition */if(!f)return;/* removed duplicate definition */r.onload=ev=>{attachImg=ev.target.result;G('ithumb').src=attachImg;G('is').classList.add('on');};r.readAsDataURL(f);e.target.value='';}
 function rmImg(){attachImg=null;G('is').classList.remove('on');}
 function resize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 
 // Typing
 function onType(){if(!cur)return;if(!typing){typing=true;socket.emit('typing',{to:cur,isTyping:true});}clearTimeout(tyTimer);tyTimer=setTimeout(clearTyp,2500);}
 function clearTyp(){if(typing){typing=false;socket.emit('typing',{to:cur,isTyping:false});}}
-function onTypingEvt({from,isTyping:t}){if(from!==cur)return;const area=G('msgs'),ex=document.getElementById('tind');if(t&&!ex){const d=document.createElement('div');d.id='tind';d.className='typing-row';d.innerHTML=`<div class="tdots"><span></span><span></span><span></span></div><span>печатает...</span>`;area.appendChild(d);scrollBot();}else if(!t&&ex)ex.remove();}
+function onTypingEvt({from,isTyping:t}){if(from!==cur)return;/* removed duplicate definition */if(t&&!ex){/* removed duplicate definition */d.id='tind';d.className='typing-row';d.innerHTML=`<div class="tdots"><span></span><span></span><span></span></div><span>печатает...</span>`;area.appendChild(d);scrollBot();}else if(!t&&ex)ex.remove();}
 
 // Reply/Delete
-function cancelReply(){replyMsg=null;G('rs').classList.remove('on');}
+/* removed duplicate definition */
 function rmEl(id){G('mw-'+id)?.remove();}
 function markRead(by){if(by!==cur)return;(hist[cur]||[]).forEach(m=>{if(m.from===me.username)m.read=true;});renderMsgs();}
 
 // Context
-function showCtx(e,id){ctxMsg=(hist[cur]||[]).find(m=>m.id===id);const c=G('ctx');c.style.left=Math.min(e.clientX,window.innerWidth-200)+'px';c.style.top=Math.min(e.clientY,window.innerHeight-130)+'px';c.classList.add('on');G('ctx-del').style.display=ctxMsg?.from===me.username?'':'none';}
+function showCtx(e,id){ctxMsg=(hist[cur]||[]).find(m=>m.id===id);/* removed duplicate definition */c.style.left=Math.min(e.clientX,window.innerWidth-200)+'px';c.style.top=Math.min(e.clientY,window.innerHeight-130)+'px';c.classList.add('on');G('ctx-del').style.display=ctxMsg?.from===me.username?'':'none';}
 document.addEventListener('click',()=>G('ctx').classList.remove('on'));
-function ctxReply(){if(!ctxMsg)return;replyMsg=ctxMsg;const n=ctxMsg.from===me.username?'Вы':(users.find(u=>u.username===ctxMsg.from)?.displayName||ctxMsg.from);G('rs-nm').textContent=n;G('rs-tx').textContent=ctxMsg.type==='image'?'Фото':ctxMsg.type==='voice'?'Голосовое':ctxMsg.content?.slice(0,80);G('rs').classList.add('on');G('mi').focus();}
-function ctxCopy(){if(ctxMsg?.content)navigator.clipboard.writeText(ctxMsg.content).catch(()=>{});}
+/* removed duplicate definition */
+/* removed duplicate definition */
 function ctxDel(){if(!ctxMsg)return;socket.emit('delete_message',{msgId:ctxMsg.id,chatWith:cur},r=>{if(r?.ok){hist[cur]=(hist[cur]||[]).filter(m=>m.id!==ctxMsg.id);rmEl(ctxMsg.id);}});}
 
 // Emoji
-function toggleEmoji(){const p=G('ep');if(!p.innerHTML)p.innerHTML=`<div class="emoji-grid">${EMOJIS.map(e=>`<div class="emoji-it" onclick="insEmoji('${e}')">${e}</div>`).join('')}</div>`;p.classList.toggle('on');}
-function insEmoji(e){const inp=G('mi'),pos=inp.selectionStart;inp.value=inp.value.slice(0,pos)+e+inp.value.slice(pos);inp.selectionStart=inp.selectionEnd=pos+e.length;inp.focus();G('ep').classList.remove('on');}
+function toggleEmoji(){/* removed duplicate definition */if(!p.innerHTML)p.innerHTML=`<div class="emoji-grid">${EMOJIS.map(e=>`<div class="emoji-it" onclick="insEmoji('${e}')">${e}</div>`).join('')}</div>`;p.classList.toggle('on');}
+function insEmoji(e){/* removed duplicate definition */inp.value=inp.value.slice(0,pos)+e+inp.value.slice(pos);inp.selectionStart=inp.selectionEnd=pos+e.length;inp.focus();G('ep').classList.remove('on');}
 document.addEventListener('click',e=>{if(!e.target.closest('.iwrap'))G('ep')?.classList.remove('on');});
 
 // Voice
 async function toggleRec(){
   if(recorder&&recorder.state==='recording'){recorder.stop();return;}
   try{
-    const s=await navigator.mediaDevices.getUserMedia({audio:true});
+    /* removed duplicate definition */
     recorder=new MediaRecorder(s);chunks=[];let sec=0;
-    const btn=G('mic-btn');btn.classList.add('rec');
+    /* removed duplicate definition */btn.classList.add('rec');
     recInt=setInterval(()=>{sec++;btn.title=`Запись: ${fs(sec)}`;},1000);
     recorder.ondataavailable=e=>chunks.push(e.data);
     recorder.onstop=()=>{
       clearInterval(recInt);btn.classList.remove('rec');btn.title='Голосовое сообщение';
-      const blob=new Blob(chunks,{type:'audio/webm'});const r=new FileReader();
+      /* removed duplicate definition */
       r.onload=ev=>{socket.emit('send_message',{to:cur,content:ev.target.result,type:'voice',duration:fs(sec),replyTo:replyMsg?.id||null},res=>{if(res?.message)pushMsg(res.message);});};
       r.readAsDataURL(blob);s.getTracks().forEach(t=>t.stop());cancelReply();
     };
     recorder.start();
   }catch(e){alert('Нет доступа к микрофону');}
 }
-function playV(btn,src){const a=new Audio(src);btn.innerHTML=PAUSE_ICO;a.play();a.onended=()=>{btn.innerHTML=PLAY_ICO;};}
+function playV(btn,src){/* removed duplicate definition */btn.innerHTML=PAUSE_ICO;a.play();a.onended=()=>{btn.innerHTML=PLAY_ICO;};}
 
 // Status
-function setStatus(username,online){const u=users.find(x=>x.username===username);if(u)u.online=online;if(cur===username){const s=G('ch-status');s.textContent=online?'В сети':'Не в сети';s.className='ch-status'+(online?' on':'');}renderList();}
-function onUserUpd({username,displayName,avatar}){const u=users.find(x=>x.username===username);if(u){u.displayName=displayName;u.avatar=avatar;}if(username===me.username){me.displayName=displayName;me.avatar=avatar;updMe();}renderList();}
+function setStatus(username,online){/* removed duplicate definition */if(u)u.online=online;if(cur===username){/* removed duplicate definition */s.textContent=online?'В сети':'Не в сети';s.className='ch-status'+(online?' on':'');}renderList();}
+function onUserUpd({username,displayName,avatar}){/* removed duplicate definition */if(u){u.displayName=displayName;u.avatar=avatar;}if(username===me.username){me.displayName=displayName;me.avatar=avatar;updMe();}renderList();}
 
 // Settings
 function openSett(){G('sp').classList.add('on');G('sef').classList.remove('on');}
 function closeSett(){G('sp').classList.remove('on');}
 function toggleEdit(){
-  const f=G('sef');
+  /* removed duplicate definition */
   if(!f.classList.contains('on')){G('en').value=me.displayName||'';G('eb').value=me.bio||'';f.classList.add('on');}
   else f.classList.remove('on');
 }
@@ -2755,52 +1804,29 @@ function saveProf(){
 function chgAv(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{fetch('/api/avatar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:me.username,avatar:ev.target.result})}).then(()=>{me.avatar=ev.target.result;updMe();});};r.readAsDataURL(f);e.target.value='';}
 
 // Profile Modal
-function showPM(username){if(!username)return;const u=users.find(x=>x.username===username)||{username,displayName:username};pmUser=username;const av=G('pmav');av.style.background=col(username);setAv(av,u,'16px');G('pmnm').textContent=u.displayName||username;G('pmhn').textContent='@'+username;const st=G('pmst');st.textContent=u.online?'В сети':'Не в сети';st.className='pm-status '+(u.online?'on':'off');G('pmbio').textContent=u.bio||'Нет описания';G('pmo').classList.add('on');}
+function showPM(username){if(!username)return;/* removed duplicate definition */pmUser=username;/* removed duplicate definition */av.style.background=col(username);setAv(av,u,'16px');G('pmnm').textContent=u.displayName||username;G('pmhn').textContent='@'+username;/* removed duplicate definition */st.textContent=u.online?'В сети':'Не в сети';st.className='pm-status '+(u.online?'on':'off');G('pmbio').textContent=u.bio||'Нет описания';G('pmo').classList.add('on');}
 function closePM(){G('pmo').classList.remove('on');}
 function chatFromPM(){closePM();openChat(pmUser);}
 function callFromPM(t){closePM();openChat(pmUser);setTimeout(()=>startCall(t),300);}
 
 // Toast
-function showToast(msg){const u=users.find(x=>x.username===msg.from)||{username:msg.from,displayName:msg.from};toastUser=msg.from;const av=G('tav');av.style.background=col(msg.from);av.style.borderRadius='11px';setAv(av,u,'11px');G('tnm').textContent=u.displayName||u.username;G('ttx').textContent=msg.type==='image'?'Фото':msg.type==='voice'?'Голосовое':(msg.content||'').slice(0,60);const t=G('toast');t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),4500);}
+/* removed duplicate definition */
 function openToast(){G('toast').classList.remove('on');if(toastUser)openChat(toastUser);}
 
 // Calls
 const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
-async function startCall(type){
-  if(!cur)return;callKind=type;callUser=cur;
-  const u=users.find(x=>x.username===cur)||{username:cur};
-  showCallUI(u,type,'out');
-  try{
-    stream=await navigator.mediaDevices.getUserMedia(type==='video'?{video:true,audio:true}:{audio:true});
-    if(type==='video'){G('localVideo').srcObject=stream;G('va').classList.add('on');}
-    pc=new RTCPeerConnection(ICE);stream.getTracks().forEach(t=>pc.addTrack(t,stream));
-    pc.ontrack=e=>{G('remoteVideo').srcObject=e.streams[0];};
-    pc.onicecandidate=e=>{if(e.candidate)socket.emit('ice_candidate',{to:callUser,candidate:e.candidate});};
-    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
-    socket.emit('call_user',{to:callUser,offer,callType:type});
-  }catch(e){endCall();alert('Нет доступа к камере/микрофону');}
-}
+async /* removed duplicate definition */
 function onInCall({from,offer,callType:ct}){callUser=from;callKind=ct;showCallUI(users.find(x=>x.username===from)||{username:from},ct,'in',offer);}
-async function acceptCall(offer){
-  try{
-    stream=await navigator.mediaDevices.getUserMedia(callKind==='video'?{video:true,audio:true}:{audio:true});
-    if(callKind==='video'){G('localVideo').srcObject=stream;G('va').classList.add('on');}
-    pc=new RTCPeerConnection(ICE);stream.getTracks().forEach(t=>pc.addTrack(t,stream));
-    pc.ontrack=e=>{G('remoteVideo').srcObject=e.streams[0];};
-    pc.onicecandidate=e=>{if(e.candidate)socket.emit('ice_candidate',{to:callUser,candidate:e.candidate});};
-    await pc.setRemoteDescription(offer);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);
-    socket.emit('call_answer',{to:callUser,answer});startCallTimer();
-  }catch(e){endCall();}
-}
+async /* removed duplicate definition */
 async function onCallAns({answer}){try{await pc.setRemoteDescription(answer);startCallTimer();showCallUI(users.find(x=>x.username===callUser)||{username:callUser},callKind,'active');}catch(e){}}
-function endCall(){socket.emit('call_end',{to:callUser});cleanCall();}
-function rejectCall(){socket.emit('call_reject',{to:callUser});cleanCall();}
+/* removed duplicate definition */
+/* removed duplicate definition */
 function cleanCall(){pc?.close();pc=null;stream?.getTracks().forEach(t=>t.stop());stream=null;clearInterval(callInt);callSecs=0;G('ctmr').style.display='none';G('va').classList.remove('on');G('co').classList.remove('on');}
 function callSt(msg,close){G('cst').textContent=msg;if(close)setTimeout(cleanCall,2000);}
-function startCallTimer(){callSecs=0;const el=G('ctmr');el.style.display='block';callInt=setInterval(()=>{callSecs++;el.textContent=fs(callSecs);},1000);}
+/* removed duplicate definition */
 const PHONE_ICO=`<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>`;
 function showCallUI(u,type,mode,offer){
-  const av=G('cav');av.style.background=col(u.username);setAv(av,u,'22px');
+  /* removed duplicate definition */av.style.background=col(u.username);setAv(av,u,'22px');
   G('cnm').textContent=u.displayName||u.username;
   const tl=type==='video'?'Видеозвонок':'Аудиозвонок';
   let st='',btns='';
@@ -2819,12 +1845,67 @@ function showCallUI(u,type,mode,offer){
   }
   G('cst').textContent=st;G('cbtns').innerHTML=btns;G('co').classList.add('on');
 }
-function tMute(btn){if(!stream)return;const t=stream.getAudioTracks()[0];t.enabled=!t.enabled;btn.classList.toggle('muted',!t.enabled);}
-function tCam(btn){if(!stream)return;const t=stream.getVideoTracks()[0];t.enabled=!t.enabled;btn.classList.toggle('muted',!t.enabled);}
+function tMute(btn){if(!stream)return;/* removed duplicate definition */t.enabled=!t.enabled;btn.classList.toggle('muted',!t.enabled);}
+function tCam(btn){if(!stream)return;/* removed duplicate definition */t.enabled=!t.enabled;btn.classList.toggle('muted',!t.enabled);}
 
 setInterval(()=>{if(me)loadUsers();},30000);
 init();
 </script>
+
+<script>
+// ===== FIXED OVERRIDES (merged from index_fixed) =====
+
+// Safe escape
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Voice playback fix (no overlapping audio)
+const __PLAY_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+const __PAUSE_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+
+function playV(btn){
+  const src = btn.dataset?.src || btn.getAttribute("data-src");
+  document.querySelectorAll('.voice-play[data-playing="1"]').forEach(b=>{
+    if(b!==btn){
+      b.dataset.playing='0';
+      b.innerHTML = __PLAY_ICO;
+      if(b._audio){ b._audio.pause(); b._audio.currentTime = 0; }
+    }
+  });
+  if(!btn._audio){
+    btn._audio = new Audio(src);
+    btn._audio.onended = ()=>{
+      btn.dataset.playing='0';
+      btn.innerHTML = __PLAY_ICO;
+    };
+  }
+  if(btn.dataset.playing === '1'){
+    btn._audio.pause();
+    btn.dataset.playing='0';
+    btn.innerHTML = __PLAY_ICO;
+  } else {
+    btn._audio.play();
+    btn.dataset.playing='1';
+    btn.innerHTML = __PAUSE_ICO;
+  }
+}
+
+// Emoji fix (prevent instant closing)
+function toggleEmoji(e){
+  if(e && e.stopPropagation) e.stopPropagation();
+  const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+  if(!p) return;
+  p.classList.toggle('on');
+}
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.emoji-picker') && !e.target.closest('.emoji-btn')){
+    const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+    if(p) p.classList.remove('on');
+  }
+});
+
+</script>
+
 </body>
 </html>}
 .auth-box {
@@ -3606,13 +2687,13 @@ init();
 
 <script>
 // ─── State ───────────────────────────────────────────────────────────────────
-let socket, me = null, currentChat = null;
-let allUsers = [], chatHistory = {}, unread = {}, chatPreviews = {};
+/* removed duplicate definition */
+/* removed duplicate definition */
 let replyTo = null, ctxMsg = null;
 let typingTimers = {}, typingState = false;
-let mediaRecorder = null, audioChunks = [], recordingInterval = null;
+/* removed duplicate definition */
 let peerConnection = null, localStream = null;
-let callTimer = null, callSeconds = 0;
+/* removed duplicate definition */
 let currentCallUser = null, callType = 'audio';
 let attachedImage = null;
 let toastTimeout = null, toastChatUser = null;
@@ -3645,26 +2726,9 @@ function switchAuthTab(tab) {
   document.getElementById('register-form').style.display = tab==='register'?'':'none';
 }
 
-function doLogin() {
-  const username = document.getElementById('login-username').value.trim();
-  const password = document.getElementById('login-password').value;
-  if (!username || !password) return setErr('login-error','Заполните все поля');
-  socket.emit('login', {username, password}, res => {
-    if (res.error) return setErr('login-error', res.error);
-    onLoggedIn(res.user);
-  });
-}
+/* removed duplicate definition */
 
-function doRegister() {
-  const displayName = document.getElementById('reg-displayname').value.trim();
-  const username = document.getElementById('reg-username').value.trim();
-  const password = document.getElementById('reg-password').value;
-  if (!displayName || !username || !password) return setErr('reg-error','Заполните все поля');
-  socket.emit('register', {username, password, displayName}, res => {
-    if (res.error) return setErr('reg-error', res.error);
-    onLoggedIn(res.user);
-  });
-}
+/* removed duplicate definition */
 
 function onLoggedIn(user) {
   me = user;
@@ -3689,7 +2753,7 @@ function setErr(id, msg) { document.getElementById(id).textContent = msg; setTim
 
 // ─── UI Updates ───────────────────────────────────────────────────────────────
 function updateMyUI() {
-  const name = me.displayName || me.username;
+  /* removed duplicate definition */
   document.getElementById('my-display-name').textContent = name;
   document.getElementById('my-avatar-text').textContent = initials(name);
   document.getElementById('settings-username').textContent = name;
@@ -3718,24 +2782,19 @@ function setAvatarEl(el, user) {
 }
 
 function setAvatarImg(elId, src) {
-  const el = document.getElementById(elId);
+  /* removed duplicate definition */
   if (!el) return;
   el.innerHTML = `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
 }
 
 function strColor(str) {
   const colors = ['#2d7dd2','#7c4dff','#e91e8c','#00bcd4','#ff6b35','#4caf50','#ff9800','#9c27b0'];
-  let h = 0; for (let c of str) h = (h*31 + c.charCodeAt(0)) % colors.length;
+  /* removed duplicate definition */ for (let c of str) h = (h*31 + c.charCodeAt(0)) % colors.length;
   return colors[h];
 }
 
 // ─── Users / Contacts ─────────────────────────────────────────────────────────
-function loadUsers() {
-  fetch('/api/users').then(r=>r.json()).then(users => {
-    allUsers = users.filter(u => u.username !== me.username);
-    renderChatList();
-  });
-}
+/* removed duplicate definition */
 
 function switchSidebarTab(tab, btn) {
   document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
@@ -3744,37 +2803,16 @@ function switchSidebarTab(tab, btn) {
   else renderChatList('people');
 }
 
-function renderChatList(mode = 'chats', filter = '') {
-  const list = document.getElementById('chat-list');
-  let html = '';
-
-  if (mode === 'people') {
-    const users = allUsers.filter(u => !filter || u.displayName.toLowerCase().includes(filter) || u.username.includes(filter));
-    if (!users.length) { list.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div>Пользователи не найдены</div></div>`; return; }
-    html += `<div class="section-label" style="padding:12px 14px 4px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px">Все пользователи</div>`;
-    users.forEach(u => {
-      html += renderUserItem(u);
-    });
-  } else {
-    // Show chats with recent messages first, then all contacts
-    const chatsWithMsgs = allUsers.filter(u => chatPreviews[u.username]);
-    const others = allUsers.filter(u => !chatPreviews[u.username]);
-    const combined = [...chatsWithMsgs, ...others].filter(u => !filter || u.displayName.toLowerCase().includes(filter) || u.username.includes(filter));
-    if (!combined.length) { list.innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div><div>Нет чатов<br><small style="color:var(--text3)">Перейди во вкладку «Люди»</small></div></div>`; return; }
-    if (chatsWithMsgs.length) html += `<div class="section-label" style="padding:12px 14px 4px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px">Недавние</div>`;
-    combined.forEach(u => html += renderUserItem(u, true));
-  }
-  list.innerHTML = html;
-}
+/* removed duplicate definition */
 
 function renderUserItem(u, showPreview = false) {
-  const preview = chatPreviews[u.username];
+  /* removed duplicate definition */
   const unreadCount = unread[u.username] || 0;
   const badge = unreadCount ? `<div class="unread-badge">${unreadCount}</div>` : '';
   const onlineDot = u.online ? `<div class="online-dot"></div>` : '';
-  const avatarBg = strColor(u.username);
-  const avatarContent = u.avatar ? `<img src="${u.avatar}" alt="">` : `<span>${initials(u.displayName||u.username)}</span>`;
-  const time = preview ? formatTime(preview.timestamp) : '';
+  /* removed duplicate definition */
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   const previewText = preview ? (preview.type === 'image' ? '📷 Фото' : preview.type === 'voice' ? '🎤 Голосовое' : escHtml(preview.content||'').slice(0,40)) : (u.online ? 'В сети' : '');
   const activeClass = currentChat === u.username ? 'active' : '';
 
@@ -3791,95 +2829,40 @@ function renderUserItem(u, showPreview = false) {
   </div>`;
 }
 
-function filterChats(val) {
-  const tab = document.querySelector('.sidebar-tab.active').textContent;
-  renderChatList(tab === 'Люди' ? 'people' : 'chats', val.toLowerCase());
-}
+/* removed duplicate definition */
 
 // ─── Chat ─────────────────────────────────────────────────────────────────────
-function openChat(username) {
-  currentChat = username;
-  unread[username] = 0;
-  const user = allUsers.find(u => u.username === username) || {username, displayName: username};
-
-  // Update header
-  const hdrAvatar = document.getElementById('chat-hdr-avatar');
-  hdrAvatar.style.background = strColor(username);
-  setAvatarEl(hdrAvatar, user);
-
-  document.getElementById('chat-hdr-name').textContent = user.displayName || username;
-  const statusEl = document.getElementById('chat-hdr-status');
-  statusEl.textContent = user.online ? 'В сети' : 'Не в сети';
-  statusEl.className = 'chat-header-status' + (user.online ? ' online' : '');
-
-  document.getElementById('no-chat').style.display = 'none';
-  const cv = document.getElementById('chat-view');
-  cv.style.display = 'flex';
-
-  // Mobile
-  document.getElementById('chat-area').classList.add('mobile-open');
-
-  // Load messages
-  socket.emit('get_messages', {with: username}, msgs => {
-    chatHistory[username] = msgs || [];
-    renderMessages();
-    scrollBottom();
-  });
-
-  // Mark read
-  socket.emit('mark_read', {chatWith: username});
-  renderChatList();
-}
+/* removed duplicate definition */
 
 function closeMobileChat() {
   document.getElementById('chat-area').classList.remove('mobile-open');
 }
 
-function renderMessages() {
-  const area = document.getElementById('messages-area');
-  const msgs = chatHistory[currentChat] || [];
-  if (!msgs.length) {
-    area.innerHTML = `<div style="text-align:center;color:var(--text3);padding:40px;font-size:13px">Начните переписку! 👋</div>`;
-    return;
-  }
-  let html = '', lastDate = null;
-  msgs.forEach(m => {
-    const d = new Date(m.timestamp).toLocaleDateString('ru-RU', {day:'numeric',month:'long'});
-    if (d !== lastDate) { html += `<div class="date-divider">${d}</div>`; lastDate = d; }
-    html += renderBubble(m);
-  });
-  area.innerHTML = html;
-  area.querySelectorAll('.bubble').forEach(b => {
-    b.addEventListener('contextmenu', e => { e.preventDefault(); showCtxMenu(e, b.dataset.id); });
-  });
-  area.querySelectorAll('img.msg-image').forEach(img => {
-    img.addEventListener('click', () => openLightbox(img.src));
-  });
-}
+/* removed duplicate definition */
 
 function renderBubble(m) {
-  const isOut = m.from === me.username;
-  const user = allUsers.find(u => u.username === m.from) || {username: m.from, displayName: m.from};
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   const avatarBg = strColor(m.from);
   const avatarContent = user.avatar ? `<img src="${user.avatar}" alt="">` : `<span>${initials(user.displayName||user.username)}</span>`;
-  const time = formatTime(m.timestamp);
+  /* removed duplicate definition */
   const readIcon = isOut ? `<span class="read-icon">${m.read ? '✓✓' : m.delivered ? '✓✓' : '✓'}</span>` : '';
 
   let replyHtml = '';
   if (m.replyTo) {
-    const orig = (chatHistory[currentChat]||[]).find(x=>x.id===m.replyTo);
+    /* removed duplicate definition */
     if (orig) {
       const rFrom = orig.from === me.username ? 'Вы' : (allUsers.find(u=>u.username===orig.from)?.displayName || orig.from);
-      const rText = orig.type==='image' ? '📷 Фото' : orig.type==='voice' ? '🎤 Голосовое' : escHtml(orig.content||'').slice(0,60);
+      /* removed duplicate definition */
       replyHtml = `<div class="bubble-reply"><div class="reply-name">${rFrom}</div>${rText}</div>`;
     }
   }
 
-  let content = '';
+  /* removed duplicate definition */
   if (m.type === 'image') {
     content = `<img class="msg-image" src="${m.content}" alt="фото">`;
   } else if (m.type === 'voice') {
-    const bars = Array.from({length:20},(_,i)=>`<span style="height:${8+Math.random()*16}px"></span>`).join('');
+    /* removed duplicate definition */
     content = `<div class="voice-bubble">
       <button class="voice-play-btn" onclick="playVoice(this,'${m.id}','${m.content}')">▶</button>
       <div class="voice-wave">${bars}</div>
@@ -3920,12 +2903,12 @@ function onNewMessage(msg) {
 }
 
 function appendMessage(msg) {
-  const area = document.getElementById('messages-area');
+  /* removed duplicate definition */
   const placeholder = area.querySelector('[style*="Начните"]');
   if (placeholder) placeholder.remove();
-  const div = document.createElement('div');
+  /* removed duplicate definition */
   div.innerHTML = renderBubble(msg);
-  const wrap = div.firstElementChild;
+  /* removed duplicate definition */
   area.appendChild(wrap);
   wrap.querySelectorAll('.bubble').forEach(b => {
     b.addEventListener('contextmenu', e => { e.preventDefault(); showCtxMenu(e, b.dataset.id); });
@@ -3944,10 +2927,10 @@ function scrollBottom() {
 function sendMessage() {
   if (!currentChat) return;
   if (attachedImage) { sendImageMessage(); return; }
-  const input = document.getElementById('msg-input');
-  const text = input.value.trim();
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   if (!text) return;
-  const data = {to: currentChat, content: text, type: 'text'};
+  /* removed duplicate definition */
   if (replyTo) { data.replyTo = replyTo.id; }
   socket.emit('send_message', data, res => {
     if (res?.message) {
@@ -3966,7 +2949,7 @@ function sendMessage() {
 
 function sendImageMessage() {
   if (!attachedImage || !currentChat) return;
-  const data = {to: currentChat, content: attachedImage, type: 'image', replyTo: replyTo?.id||null};
+  /* removed duplicate definition */
   socket.emit('send_message', data, res => {
     if (res?.message) {
       if (!chatHistory[currentChat]) chatHistory[currentChat] = [];
@@ -3986,8 +2969,8 @@ function handleMsgKey(e) {
 }
 
 function handleImageAttach(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
+  /* removed duplicate definition */ if (!file) return;
+  /* removed duplicate definition */
   reader.onload = ev => {
     attachedImage = ev.target.result;
     document.getElementById('img-attach-thumb').src = attachedImage;
@@ -4016,10 +2999,10 @@ function clearTyping() {
 
 function onTyping({from, isTyping}) {
   if (from !== currentChat) return;
-  const area = document.getElementById('messages-area');
-  const existing = document.getElementById('typing-indicator');
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   if (isTyping && !existing) {
-    const div = document.createElement('div');
+    /* removed duplicate definition */
     div.id = 'typing-indicator';
     div.className = 'typing-indicator';
     div.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div><span>печатает...</span>`;
@@ -4037,11 +3020,11 @@ async function toggleRecording() {
     return;
   }
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    /* removed duplicate definition */
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
     let seconds = 0;
-    const btn = document.getElementById('mic-btn');
+    /* removed duplicate definition */
     btn.classList.add('recording');
     btn.textContent = '⏹';
     recordingInterval = setInterval(() => { seconds++; btn.title = formatSecs(seconds); }, 1000);
@@ -4051,10 +3034,10 @@ async function toggleRecording() {
       btn.classList.remove('recording');
       btn.textContent = '🎤';
       btn.title = 'Голосовое сообщение';
-      const blob = new Blob(audioChunks, {type:'audio/webm'});
-      const reader = new FileReader();
+      /* removed duplicate definition */
+      /* removed duplicate definition */
       reader.onload = ev => {
-        const dur = formatSecs(seconds);
+        /* removed duplicate definition */
         socket.emit('send_message', {to: currentChat, content: ev.target.result, type: 'voice', duration: dur}, res => {
           if (res?.message) {
             if (!chatHistory[currentChat]) chatHistory[currentChat] = [];
@@ -4074,7 +3057,7 @@ async function toggleRecording() {
 }
 
 function playVoice(btn, id, src) {
-  const audio = new Audio(src);
+  /* removed duplicate definition */
   btn.textContent = '⏸';
   audio.play();
   audio.onended = () => { btn.textContent = '▶'; };
@@ -4083,48 +3066,20 @@ function playVoice(btn, id, src) {
 function formatSecs(s) { return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
 
 // ─── Context Menu ──────────────────────────────────────────────────────────────
-function showCtxMenu(e, msgId) {
-  const msgs = chatHistory[currentChat] || [];
-  ctxMsg = msgs.find(m => m.id === msgId);
-  const menu = document.getElementById('ctx-menu');
-  menu.style.left = Math.min(e.clientX, window.innerWidth-180) + 'px';
-  menu.style.top = Math.min(e.clientY, window.innerHeight-120) + 'px';
-  menu.classList.add('show');
-  const deleteItem = menu.children[2];
-  deleteItem.style.display = ctxMsg?.from === me.username ? '' : 'none';
-  e.stopPropagation();
-}
+/* removed duplicate definition */
 
 document.addEventListener('click', () => document.getElementById('ctx-menu').classList.remove('show'));
 
-function ctxReply() {
-  if (!ctxMsg) return;
-  replyTo = ctxMsg;
-  const name = ctxMsg.from === me.username ? 'Вы' : (allUsers.find(u=>u.username===ctxMsg.from)?.displayName || ctxMsg.from);
-  document.getElementById('reply-name').textContent = name;
-  document.getElementById('reply-text').textContent = ctxMsg.type==='image' ? '📷 Фото' : ctxMsg.type==='voice' ? '🎤 Голосовое' : ctxMsg.content?.slice(0,80);
-  document.getElementById('reply-preview').classList.add('show');
-  document.getElementById('msg-input').focus();
-}
+/* removed duplicate definition */
 
-function ctxCopy() {
-  if (ctxMsg?.content) navigator.clipboard.writeText(ctxMsg.content).catch(()=>{});
-}
+/* removed duplicate definition */
 
-function ctxDelete() {
-  if (!ctxMsg) return;
-  socket.emit('delete_message', {msgId: ctxMsg.id, chatWith: currentChat}, res => {
-    if (res?.ok) {
-      chatHistory[currentChat] = (chatHistory[currentChat]||[]).filter(m=>m.id!==ctxMsg.id);
-      removeMessageEl(ctxMsg.id);
-    }
-  });
-}
+/* removed duplicate definition */
 
-function cancelReply() { replyTo = null; document.getElementById('reply-preview').classList.remove('show'); }
+/* removed duplicate definition */
 
 function removeMessageEl(msgId) {
-  const el = document.getElementById('msg-' + msgId);
+  /* removed duplicate definition */
   if (el) el.remove();
 }
 
@@ -4138,7 +3093,7 @@ function toggleEmojiPicker() {
 }
 
 function insertEmoji(e) {
-  const input = document.getElementById('msg-input');
+  /* removed duplicate definition */
   const pos = input.selectionStart;
   input.value = input.value.slice(0, pos) + e + input.value.slice(pos);
   input.selectionStart = input.selectionEnd = pos + e.length;
@@ -4153,14 +3108,14 @@ document.addEventListener('click', e => {
 // ─── Read Receipts ────────────────────────────────────────────────────────────
 function markMessagesRead(by) {
   if (by !== currentChat) return;
-  const msgs = chatHistory[currentChat] || [];
+  /* removed duplicate definition */
   msgs.forEach(m => { if (m.from === me.username) m.read = true; });
   renderMessages();
 }
 
 // ─── Status Updates ───────────────────────────────────────────────────────────
 function updateUserStatus(username, online, lastSeen) {
-  const u = allUsers.find(u=>u.username===username);
+  /* removed duplicate definition */
   if (u) u.online = online;
   if (!online && lastSeen) { if(u) u.lastSeen = lastSeen; }
   if (currentChat === username) {
@@ -4172,7 +3127,7 @@ function updateUserStatus(username, online, lastSeen) {
 }
 
 function onUserUpdated({username, displayName, avatar}) {
-  const u = allUsers.find(u=>u.username===username);
+  /* removed duplicate definition */
   if (u) { u.displayName = displayName; u.avatar = avatar; }
   if (username === me.username) { me.displayName = displayName; me.avatar = avatar; updateMyUI(); }
   renderChatList();
@@ -4181,51 +3136,15 @@ function onUserUpdated({username, displayName, avatar}) {
 // ─── Calls ────────────────────────────────────────────────────────────────────
 const ICE_SERVERS = {iceServers: [{urls:'stun:stun.l.google.com:19302'}]};
 
-async function startCall(type) {
-  if (!currentChat) return;
-  callType = type; currentCallUser = currentChat;
-  const user = allUsers.find(u=>u.username===currentChat)||{username:currentChat,displayName:currentChat};
-  showCallModal(user, type, 'outgoing');
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia(type==='video' ? {video:true,audio:true} : {audio:true});
-    if (type === 'video') {
-      document.getElementById('localVideo').srcObject = localStream;
-      document.getElementById('video-area').classList.add('show');
-    }
-    peerConnection = new RTCPeerConnection(ICE_SERVERS);
-    localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
-    peerConnection.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; };
-    peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('ice_candidate', {to: currentCallUser, candidate: e.candidate}); };
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    socket.emit('call_user', {to: currentCallUser, offer, callType: type});
-  } catch(e) { endCall(); alert('Нет доступа к камере/микрофону'); }
-}
+async /* removed duplicate definition */
 
 async function onIncomingCall({from, offer, callType: ct}) {
   currentCallUser = from; callType = ct;
-  const user = allUsers.find(u=>u.username===from)||{username:from,displayName:from};
+  /* removed duplicate definition */
   showCallModal(user, ct, 'incoming', offer);
 }
 
-async function acceptCall(offer) {
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia(callType==='video' ? {video:true,audio:true} : {audio:true});
-    if (callType === 'video') {
-      document.getElementById('localVideo').srcObject = localStream;
-      document.getElementById('video-area').classList.add('show');
-    }
-    peerConnection = new RTCPeerConnection(ICE_SERVERS);
-    localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
-    peerConnection.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; };
-    peerConnection.onicecandidate = e => { if(e.candidate) socket.emit('ice_candidate', {to: currentCallUser, candidate: e.candidate}); };
-    await peerConnection.setRemoteDescription(offer);
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-    socket.emit('call_answer', {to: currentCallUser, answer});
-    startCallTimer();
-  } catch(e) { endCall(); }
-}
+async /* removed duplicate definition */
 
 async function onCallAnswered({answer}) {
   try {
@@ -4241,32 +3160,19 @@ async function onIceCandidate({candidate}) {
 
 function onCallEnded() { showCallStatus('Звонок завершён', true); }
 
-function endCall() {
-  socket.emit('call_end', {to: currentCallUser});
-  cleanupCall();
-}
+/* removed duplicate definition */
 
-function rejectCall() {
-  socket.emit('call_reject', {to: currentCallUser});
-  cleanupCall();
-}
+/* removed duplicate definition */
 
-function cleanupCall() {
-  if (peerConnection) { peerConnection.close(); peerConnection = null; }
-  if (localStream) { localStream.getTracks().forEach(t=>t.stop()); localStream = null; }
-  clearInterval(callTimer); callSeconds = 0;
-  document.getElementById('call-timer').style.display = 'none';
-  document.getElementById('video-area').classList.remove('show');
-  document.getElementById('call-modal').classList.remove('show');
-}
+/* removed duplicate definition */
 
 function showCallModal(user, type, mode, offer) {
   const modal = document.getElementById('call-modal');
-  const avatar = document.getElementById('call-avatar');
+  /* removed duplicate definition */
   avatar.style.background = strColor(user.username);
   setAvatarEl(avatar, user);
   document.getElementById('call-name').textContent = user.displayName || user.username;
-  const icon = type==='video' ? '📹' : '📞';
+  /* removed duplicate definition */
   const typeLabel = type==='video' ? 'Видеозвонок' : 'Аудиозвонок';
 
   let status, actions;
@@ -4302,26 +3208,11 @@ function showCallStatus(msg, autoClose) {
   if (autoClose) setTimeout(() => cleanupCall(), 2000);
 }
 
-function startCallTimer() {
-  callSeconds = 0;
-  const el = document.getElementById('call-timer');
-  el.style.display = 'block';
-  callTimer = setInterval(() => { callSeconds++; el.textContent = formatSecs(callSeconds); }, 1000);
-}
+/* removed duplicate definition */
 
-function toggleMute(btn) {
-  if (!localStream) return;
-  const track = localStream.getAudioTracks()[0];
-  track.enabled = !track.enabled;
-  btn.textContent = track.enabled ? '🎙️' : '🔇';
-}
+/* removed duplicate definition */
 
-function toggleCam(btn) {
-  if (!localStream) return;
-  const track = localStream.getVideoTracks()[0];
-  track.enabled = !track.enabled;
-  btn.textContent = track.enabled ? '📷' : '🚫';
-}
+/* removed duplicate definition */
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
 function openSettings() {
@@ -4346,21 +3237,11 @@ function toggleEditProfile() {
   }
 }
 
-function saveProfile() {
-  const displayName = document.getElementById('edit-displayname').value.trim();
-  const bio = document.getElementById('edit-bio').value.trim();
-  socket.emit('update_profile', {displayName, bio}, res => {
-    if (res?.ok) {
-      me = res.user;
-      updateMyUI();
-      document.getElementById('edit-profile-form').style.display = 'none';
-    }
-  });
-}
+/* removed duplicate definition */
 
 function handleAvatarChange(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
+  /* removed duplicate definition */ if (!file) return;
+  /* removed duplicate definition */
   reader.onload = ev => {
     fetch('/api/avatar', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -4377,7 +3258,7 @@ function handleAvatarChange(e) {
 // ─── Profile Modal ────────────────────────────────────────────────────────────
 function showUserProfile(username) {
   if (!username) return;
-  const user = allUsers.find(u=>u.username===username)||{username,displayName:username};
+  /* removed duplicate definition */
   profileModalUser = username;
   const pa = document.getElementById('pm-avatar');
   pa.style.background = strColor(username);
@@ -4408,15 +3289,15 @@ function startCallFromProfile2(type) {
 
 // ─── Toast Notifications ──────────────────────────────────────────────────────
 function showToast(msg) {
-  const user = allUsers.find(u=>u.username===msg.from)||{username:msg.from,displayName:msg.from};
+  /* removed duplicate definition */
   toastChatUser = msg.from;
   const ta = document.getElementById('toast-avatar');
   ta.style.background = strColor(msg.from);
   ta.textContent = initials(user.displayName||user.username);
   document.getElementById('toast-name').textContent = user.displayName || user.username;
-  const text = msg.type==='image' ? '📷 Фото' : msg.type==='voice' ? '🎤 Голосовое' : msg.content?.slice(0,50);
+  /* removed duplicate definition */
   document.getElementById('toast-msg').textContent = text;
-  const toast = document.getElementById('toast');
+  /* removed duplicate definition */
   toast.classList.add('show');
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => toast.classList.remove('show'), 4000);
@@ -4428,10 +3309,7 @@ function openChatFromToast() {
 }
 
 // ─── Image Lightbox ───────────────────────────────────────────────────────────
-function openLightbox(src) {
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox').classList.add('show');
-}
+/* removed duplicate definition */
 
 // ─── Misc ──────────────────────────────────────────────────────────────────────
 function showNewChatHint() {
@@ -4444,16 +3322,15 @@ function autoResize(el) {
 }
 
 function formatTime(ts) {
-  const d = new Date(ts);
-  const now = new Date();
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
   const days = Math.floor((now-d)/86400000);
   if (days < 7) return d.toLocaleDateString('ru-RU',{weekday:'short'});
   return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
 }
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+/* removed duplicate definition */').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
@@ -4462,6 +3339,61 @@ connectSocket();
 // Refresh users every 30s for online status
 setInterval(() => { if (me) loadUsers(); }, 30000);
 </script>
+
+<script>
+// ===== FIXED OVERRIDES (merged from index_fixed) =====
+
+// Safe escape
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Voice playback fix (no overlapping audio)
+const __PLAY_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+const __PAUSE_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+
+function playV(btn){
+  const src = btn.dataset?.src || btn.getAttribute("data-src");
+  document.querySelectorAll('.voice-play[data-playing="1"]').forEach(b=>{
+    if(b!==btn){
+      b.dataset.playing='0';
+      b.innerHTML = __PLAY_ICO;
+      if(b._audio){ b._audio.pause(); b._audio.currentTime = 0; }
+    }
+  });
+  if(!btn._audio){
+    btn._audio = new Audio(src);
+    btn._audio.onended = ()=>{
+      btn.dataset.playing='0';
+      btn.innerHTML = __PLAY_ICO;
+    };
+  }
+  if(btn.dataset.playing === '1'){
+    btn._audio.pause();
+    btn.dataset.playing='0';
+    btn.innerHTML = __PLAY_ICO;
+  } else {
+    btn._audio.play();
+    btn.dataset.playing='1';
+    btn.innerHTML = __PAUSE_ICO;
+  }
+}
+
+// Emoji fix (prevent instant closing)
+function toggleEmoji(e){
+  if(e && e.stopPropagation) e.stopPropagation();
+  const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+  if(!p) return;
+  p.classList.toggle('on');
+}
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.emoji-picker') && !e.target.closest('.emoji-btn')){
+    const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+    if(p) p.classList.remove('on');
+  }
+});
+
+</script>
+
 </body>
 </html>::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px;}
 
@@ -5438,7 +4370,7 @@ textarea.edit-field{resize:none;min-height:80px;line-height:1.5;}
 // ═══════════════════════════════════════════════════════════════════════
 
 const SERVER = window.location.origin;
-const socket = io(SERVER);
+/* removed duplicate definition */
 
 // ── State ──────────────────────────────────────────────────────────────
 let me = null;              // current user
@@ -5455,7 +4387,7 @@ let mediaRec = null;
 let recChunks = [];
 let recTimer = null;
 let recSecs = 0;
-let isRecording = false;
+/* removed duplicate definition */
 
 // Video circle
 let vcStream = null;
@@ -5487,7 +4419,7 @@ const $ = id => document.getElementById(id);
 const fmt = (str,...a) => str;
 
 function toast(msg, type='success') {
-  const t = document.createElement('div');
+  /* removed duplicate definition */
   t.className = `toast ${type}`;
   t.innerHTML = `<div class="toast-dot"></div>${msg}`;
   $('toast-container').appendChild(t);
@@ -5495,12 +4427,12 @@ function toast(msg, type='success') {
 }
 
 function fmtTime(ts) {
-  const d = new Date(ts);
+  /* removed duplicate definition */
   return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
 }
 
 function fmtDate(ts) {
-  const d = new Date(ts);
+  /* removed duplicate definition */
   const now = new Date();
   const diff = now - d;
   if (diff < 86400000 && d.getDate() === now.getDate()) return 'Today';
@@ -5527,7 +4459,7 @@ function renderAvatar(el, user, size=48) {
   el.style.height = size + 'px';
   el.style.fontSize = Math.floor(size*0.36) + 'px';
   if (user.avatar) {
-    const img = document.createElement('img');
+    /* removed duplicate definition */
     img.src = user.avatar;
     el.appendChild(img);
   } else {
@@ -5554,8 +4486,8 @@ function switchTab(tab) {
 }
 
 function doLogin() {
-  const username = $('l-user').value.trim();
-  const password = $('l-pass').value;
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   if (!username || !password) { $('auth-err').textContent='Please fill all fields'; return; }
   socket.emit('login', { username, password }, res => {
     if (res.error) { $('auth-err').textContent = res.error; return; }
@@ -5564,7 +4496,7 @@ function doLogin() {
 }
 
 function doRegister() {
-  const displayName = $('r-name').value.trim();
+  /* removed duplicate definition */
   const username = $('r-user').value.trim();
   const password = $('r-pass').value;
   if (!displayName || !username || !password) { $('auth-err').textContent='Please fill all fields'; return; }
@@ -5625,7 +4557,7 @@ function loadUsers() {
 }
 
 function renderChatList() {
-  const list = $('chat-list');
+  /* removed duplicate definition */
   const query = $('search-input').value.toLowerCase();
   list.innerHTML = '';
 
@@ -5637,10 +4569,10 @@ function renderChatList() {
   );
 
   ordered.forEach(user => {
-    const msgs = chatHistory[user.username] || [];
+    /* removed duplicate definition */
     const last = msgs[msgs.length-1];
     const uc = unreadCounts[user.username] || 0;
-    const div = document.createElement('div');
+    /* removed duplicate definition */
     div.className = 'chat-item' + (activeChat===user.username?' active':'');
     div.onclick = () => openChat(user.username);
 
@@ -5652,7 +4584,7 @@ function renderChatList() {
       else preview = last.content;
     }
 
-    const av = document.createElement('div');
+    /* removed duplicate definition */
     av.className = 'avatar';
     renderAvatar(av, user, 48);
 
@@ -5677,10 +4609,10 @@ function renderContacts() {
   const list = $('contacts-list');
   list.innerHTML = '';
   allUsers.forEach(user => {
-    const div = document.createElement('div');
+    /* removed duplicate definition */
     div.className = 'contact-item';
     div.onclick = () => { openChat(user.username); showPanel('chats'); };
-    const av = document.createElement('div');
+    /* removed duplicate definition */
     av.className = 'avatar';
     renderAvatar(av, user, 44);
     div.innerHTML = `
@@ -5699,9 +4631,9 @@ function openChat(username) {
   activeChat = username;
   unreadCounts[username] = 0;
 
-  const user = getUser(username);
+  /* removed duplicate definition */
   // Update header
-  const av = $('ch-avatar');
+  /* removed duplicate definition */
   renderAvatar(av, user, 40);
   $('ch-name').textContent = user.displayName || username;
   updateStatus(username);
@@ -5727,7 +4659,7 @@ function openChat(username) {
 }
 
 function updateStatus(username) {
-  const user = getUser(username);
+  /* removed duplicate definition */
   const statusEl = $('ch-status');
   if (user.online) {
     statusEl.textContent = 'Online';
@@ -5740,8 +4672,8 @@ function updateStatus(username) {
 }
 
 function renderMessages() {
-  const area = $('messages-area');
-  const msgs = chatHistory[activeChat] || [];
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   area.innerHTML = '';
 
   let lastDate = null;
@@ -5749,7 +4681,7 @@ function renderMessages() {
     const d = new Date(msg.timestamp);
     const dateStr = fmtDate(msg.timestamp);
     if (dateStr !== lastDate) {
-      const div = document.createElement('div');
+      /* removed duplicate definition */
       div.className = 'date-divider';
       div.innerHTML = `<span>${dateStr}</span>`;
       area.appendChild(div);
@@ -5759,7 +4691,7 @@ function renderMessages() {
   });
 
   // Add typing bubble at end
-  const tb = document.createElement('div');
+  /* removed duplicate definition */
   tb.className = 'typing-bubble';
   tb.id = 'typing-bubble';
   tb.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
@@ -5814,7 +4746,7 @@ function createMsgEl(msg) {
     showCtxMenu(e, msg);
   });
   wrap.addEventListener('touchstart', (e) => {
-    const t = setTimeout(() => showCtxMenu({ clientX:e.touches[0].clientX, clientY:e.touches[0].clientY }, msg), 600);
+    /* removed duplicate definition */
     wrap.addEventListener('touchend', () => clearTimeout(t), { once:true });
   });
 
@@ -5842,13 +4774,12 @@ function escHtml(s) {
 }
 
 function findMsg(id) {
-  const msgs = chatHistory[activeChat] || [];
+  /* removed duplicate definition */
   return msgs.find(m => m.id === id);
 }
 
 function buildVoiceMsg(msg) {
-  const bars = Array(28).fill(0).map((_,i) => {
-    const h = 6 + Math.random()*22;
+  /* removed duplicate definition */
     return `<div class="wave-bar" style="height:${h}px" data-i="${i}"></div>`;
   }).join('');
   return `
@@ -5862,7 +4793,7 @@ function buildVoiceMsg(msg) {
 }
 
 function setupVoicePlayer(wrap, msg) {
-  const btn = wrap.querySelector('.play-btn');
+  /* removed duplicate definition */
   const bars = wrap.querySelectorAll('.wave-bar');
   const durEl = wrap.querySelector('.voice-dur');
   if (!btn) return;
@@ -5929,13 +4860,13 @@ function buildImageMsg(msg) {
 function appendMsg(msg) {
   if (!chatHistory[msg.from] && msg.from !== me.username) chatHistory[msg.from] = [];
   if (!chatHistory[msg.to] && msg.to !== me.username) chatHistory[msg.to] = [];
-  const key = msg.from === me.username ? msg.to : msg.from;
+  /* removed duplicate definition */
   if (!chatHistory[key]) chatHistory[key] = [];
   chatHistory[key].push(msg);
 
   if (activeChat === key) {
-    const area = $('messages-area');
-    const tb = $('typing-bubble');
+    /* removed duplicate definition */
+    /* removed duplicate definition */
     area.insertBefore(createMsgEl(msg), tb);
     area.scrollTop = area.scrollHeight;
   }
@@ -5953,7 +4884,7 @@ function handleKey(e) {
 function handleInput(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-  const hasText = el.value.trim().length > 0;
+  /* removed duplicate definition */
   $('send-icon').style.display = hasText ? '' : 'none';
   $('mic-icon').style.display = hasText ? 'none' : '';
   $('send-btn').classList.toggle('mic-mode', !hasText);
@@ -5969,9 +4900,9 @@ function handleSendBtn() {
 
 function sendText() {
   const input = $('msg-input');
-  const text = input.value.trim();
+  /* removed duplicate definition */
   if (!text || !activeChat) return;
-  const data = { to: activeChat, content: text, type: 'text' };
+  /* removed duplicate definition */
   if (replyingTo) { data.replyTo = replyingTo.id; cancelReply(); }
   socket.emit('send_message', data, res => {
     if (res?.ok) appendMsg(res.message);
@@ -5985,10 +4916,10 @@ function sendText() {
 function handleFileUpload(inp) {
   if (!inp.files[0] || !activeChat) return;
   const file = inp.files[0];
-  const reader = new FileReader();
+  /* removed duplicate definition */
   reader.onload = e => {
-    const type = file.type.startsWith('video') ? 'video_circle' : 'image';
-    const data = { to: activeChat, content: e.target.result, type };
+    /* removed duplicate definition */
+    /* removed duplicate definition */
     if (replyingTo) { data.replyTo = replyingTo.id; cancelReply(); }
     socket.emit('send_message', data, res => {
       if (res?.ok) appendMsg(res.message);
@@ -6003,7 +4934,7 @@ async function startVoiceRecord() {
   if (!activeChat) return;
   if (isRecording) { stopVoiceRecord(); return; }
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    /* removed duplicate definition */
     mediaRec = new MediaRecorder(stream);
     recChunks = [];
     mediaRec.ondataavailable = e => recChunks.push(e.data);
@@ -6047,8 +4978,8 @@ function cancelRecord() {
 
 function sendVoiceMsg() {
   if (recChunks.length === 0) return;
-  const blob = new Blob(recChunks, { type: 'audio/webm' });
-  const reader = new FileReader();
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   const dur = recSecs;
   reader.onload = e => {
     const data = { to: activeChat, content: e.target.result, type: 'voice', duration: dur };
@@ -6106,8 +5037,8 @@ function stopVideoRecord() {
 }
 
 function sendVideoCircle() {
-  const blob = new Blob(vcChunks, { type: 'video/webm' });
-  const reader = new FileReader();
+  /* removed duplicate definition */
+  /* removed duplicate definition */
   reader.onload = e => {
     socket.emit('send_message', { to: activeChat, content: e.target.result, type: 'video_circle' }, res => {
       if (res?.ok) appendMsg(res.message);
@@ -6136,7 +5067,7 @@ function cancelReply() {
 
 function startReply(msg) {
   replyingTo = msg;
-  const name = msg.from === me.username ? 'You' : (getUser(msg.from).displayName || msg.from);
+  /* removed duplicate definition */
   $('reply-name').textContent = name;
   $('reply-text').textContent = msg.type==='voice'?'Voice message':msg.type==='video_circle'?'Video circle':(msg.content||'');
   $('reply-bar').classList.add('show');
@@ -6206,7 +5137,7 @@ function openCompose() { showPanel('contacts'); }
 function openProfile() {
   if (!activeChat) return;
   // Simple: show toast with user info
-  const user = getUser(activeChat);
+  /* removed duplicate definition */
   toast(`${user.displayName} (@${user.username}) — ${user.bio || 'No bio'}`);
 }
 
@@ -6230,22 +5161,11 @@ function savePrivacy() {
   });
 }
 
-function saveProfile() {
-  const displayName = $('edit-name').value.trim();
-  const bio = $('edit-bio').value;
-  if (!displayName) { toast('Name cannot be empty', 'error'); return; }
-  socket.emit('update_profile', { displayName, bio }, res => {
-    if (res?.ok) {
-      me = { ...me, ...res.user };
-      updateMyProfile();
-      toast('Profile saved');
-    }
-  });
-}
+/* removed duplicate definition */
 
 function uploadAvatar(inp) {
   if (!inp.files[0]) return;
-  const reader = new FileReader();
+  /* removed duplicate definition */
   reader.onload = e => {
     const avatar = e.target.result;
     fetch('/api/avatar', {
@@ -6256,7 +5176,7 @@ function uploadAvatar(inp) {
       me.avatar = avatar;
       updateMyProfile();
       // Update in allUsers
-      const u = allUsers.find(u => u.username === me.username);
+      /* removed duplicate definition */
       if (u) u.avatar = avatar;
       toast('Photo updated');
     });
@@ -6294,17 +5214,17 @@ async function startCall(type) {
     $('video-wrap').classList.add('show');
   }
 
-  const offer = await pc.createOffer();
+  /* removed duplicate definition */
   await pc.setLocalDescription(offer);
   socket.emit('call_user', { to: activeChat, offer, callType: type });
 
   // Show outgoing call UI
-  const user = getUser(activeChat);
+  /* removed duplicate definition */
   showCallOverlay(user, 'Calling...', false);
 }
 
 function showCallOverlay(user, status, isIncoming) {
-  const av = $('call-avatar');
+  /* removed duplicate definition */
   renderAvatar(av, user, 90);
   av.classList.toggle('ringing', true);
   $('call-name').textContent = user.displayName || user.username;
@@ -6373,7 +5293,7 @@ function toggleMute() {
   if (!localStream) return;
   isMuted = !isMuted;
   localStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
-  const btn = $('mute-btn');
+  /* removed duplicate definition */
   if (btn) btn.classList.toggle('active-btn', isMuted);
 }
 
@@ -6389,7 +5309,7 @@ function toggleCam() {
 function showIncomingCall(from, callType) {
   incomingCaller = from;
   incomingCallType = callType;
-  const user = getUser(from);
+  /* removed duplicate definition */
   const av = $('inc-avatar');
   renderAvatar(av, user, 44);
   $('inc-name').textContent = user.displayName || from;
@@ -6456,7 +5376,7 @@ socket.on('new_message', msg => {
 
   if (activeChat === key) {
     const area = $('messages-area');
-    const tb = $('typing-bubble');
+    /* removed duplicate definition */
     area.insertBefore(createMsgEl(msg), tb);
     area.scrollTop = area.scrollHeight;
     socket.emit('mark_read', { chatWith: key });
@@ -6464,7 +5384,7 @@ socket.on('new_message', msg => {
     unreadCounts[key] = (unreadCounts[key] || 0) + 1;
     // Notification
     if ($('notif-toggle')?.classList.contains('on') && Notification.permission === 'granted') {
-      const u = getUser(msg.from);
+      /* removed duplicate definition */
       new Notification(u.displayName || msg.from, {
         body: msg.type==='voice'?'Voice message':msg.type==='video_circle'?'Video circle':(msg.content||''),
         icon: u.avatar || ''
@@ -6497,7 +5417,7 @@ socket.on('user_typing', ({ from, isTyping }) => {
 });
 
 socket.on('user_online', ({ username }) => {
-  const u = allUsers.find(u => u.username === username);
+  /* removed duplicate definition */
   if (u) u.online = true;
   if (activeChat === username) updateStatus(username);
   renderChatList();
@@ -6505,7 +5425,7 @@ socket.on('user_online', ({ username }) => {
 });
 
 socket.on('user_offline', ({ username, lastSeen: ls }) => {
-  const u = allUsers.find(u => u.username === username);
+  /* removed duplicate definition */
   if (u) u.online = false;
   if (ls) lastSeen[username] = ls;
   if (activeChat === username) updateStatus(username);
@@ -6580,6 +5500,61 @@ $('mic-icon').style.display = '';
 // Prevent context menu on messages area
 $('messages-area')?.addEventListener('contextmenu', e => e.preventDefault());
 </script>
+
+<script>
+// ===== FIXED OVERRIDES (merged from index_fixed) =====
+
+// Safe escape
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Voice playback fix (no overlapping audio)
+const __PLAY_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+const __PAUSE_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+
+function playV(btn){
+  const src = btn.dataset?.src || btn.getAttribute("data-src");
+  document.querySelectorAll('.voice-play[data-playing="1"]').forEach(b=>{
+    if(b!==btn){
+      b.dataset.playing='0';
+      b.innerHTML = __PLAY_ICO;
+      if(b._audio){ b._audio.pause(); b._audio.currentTime = 0; }
+    }
+  });
+  if(!btn._audio){
+    btn._audio = new Audio(src);
+    btn._audio.onended = ()=>{
+      btn.dataset.playing='0';
+      btn.innerHTML = __PLAY_ICO;
+    };
+  }
+  if(btn.dataset.playing === '1'){
+    btn._audio.pause();
+    btn.dataset.playing='0';
+    btn.innerHTML = __PLAY_ICO;
+  } else {
+    btn._audio.play();
+    btn.dataset.playing='1';
+    btn.innerHTML = __PAUSE_ICO;
+  }
+}
+
+// Emoji fix (prevent instant closing)
+function toggleEmoji(e){
+  if(e && e.stopPropagation) e.stopPropagation();
+  const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+  if(!p) return;
+  p.classList.toggle('on');
+}
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.emoji-picker') && !e.target.closest('.emoji-btn')){
+    const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+    if(p) p.classList.remove('on');
+  }
+});
+
+</script>
+
 </body>
 </html>        /* Chat Area */
         .main-chat { flex: 1; display: flex; flex-direction: column; background: #0e1621 url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: soft-light; }
@@ -6684,7 +5659,7 @@ $('messages-area')?.addEventListener('contextmenu', e => e.preventDefault());
     </div>
 
     <script>
-        const socket = io();
+        /* removed duplicate definition */
         let sharedSecret = null;
 
         // --- DH ALGORITHM ---
@@ -6706,25 +5681,16 @@ $('messages-area')?.addEventListener('contextmenu', e => e.preventDefault());
         });
 
         // --- CRYPTO ---
-        function encrypt(t) {
-            if(!sharedSecret) return t;
-            return CryptoJS.AES.encrypt(t, sharedSecret.toString()).toString();
-        }
-        function decrypt(c) {
-            if(!sharedSecret) return c;
-            try {
-                const b = CryptoJS.AES.decrypt(c, sharedSecret.toString());
-                return b.toString(CryptoJS.enc.Utf8) || "🔒 Зашифровано";
-            } catch(e) { return "🔒 Зашифровано"; }
-        }
+        /* removed duplicate definition */
+        /* removed duplicate definition */
 
         // --- ACTIONS ---
         function send() {
             const inp = document.getElementById('mainMsgInput');
             if(!inp.value.trim()) return;
             
-            const nick = localStorage.getItem('f_nick') || 'User';
-            const text = inp.value.trim();
+            /* removed duplicate definition */
+            /* removed duplicate definition */
             
             socket.emit('chat message', { text: encrypt(text), nick: nick });
             render(text, 'out', 'Вы');
@@ -6759,7 +5725,7 @@ $('messages-area')?.addEventListener('contextmenu', e => e.preventDefault());
         }
 
         function saveProfile() {
-            const nick = document.getElementById('nickInp').value;
+            /* removed duplicate definition */
             localStorage.setItem('f_nick', nick);
             document.getElementById('setAva').textContent = nick.charAt(0).toUpperCase() || 'U';
             document.getElementById('sideAva').textContent = nick.charAt(0).toUpperCase() || 'U';
@@ -6773,6 +5739,61 @@ $('messages-area')?.addEventListener('contextmenu', e => e.preventDefault());
 
         document.getElementById('mainMsgInput').onkeydown = e => { if(e.key === 'Enter') send(); };
     </script>
+
+<script>
+// ===== FIXED OVERRIDES (merged from index_fixed) =====
+
+// Safe escape
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Voice playback fix (no overlapping audio)
+const __PLAY_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+const __PAUSE_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+
+function playV(btn){
+  const src = btn.dataset?.src || btn.getAttribute("data-src");
+  document.querySelectorAll('.voice-play[data-playing="1"]').forEach(b=>{
+    if(b!==btn){
+      b.dataset.playing='0';
+      b.innerHTML = __PLAY_ICO;
+      if(b._audio){ b._audio.pause(); b._audio.currentTime = 0; }
+    }
+  });
+  if(!btn._audio){
+    btn._audio = new Audio(src);
+    btn._audio.onended = ()=>{
+      btn.dataset.playing='0';
+      btn.innerHTML = __PLAY_ICO;
+    };
+  }
+  if(btn.dataset.playing === '1'){
+    btn._audio.pause();
+    btn.dataset.playing='0';
+    btn.innerHTML = __PLAY_ICO;
+  } else {
+    btn._audio.play();
+    btn.dataset.playing='1';
+    btn.innerHTML = __PAUSE_ICO;
+  }
+}
+
+// Emoji fix (prevent instant closing)
+function toggleEmoji(e){
+  if(e && e.stopPropagation) e.stopPropagation();
+  const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+  if(!p) return;
+  p.classList.toggle('on');
+}
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.emoji-picker') && !e.target.closest('.emoji-btn')){
+    const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+    if(p) p.classList.remove('on');
+  }
+});
+
+</script>
+
 </body>
 </html>        .message.in { background-color: var(--message-in); align-self: flex-start; border-bottom-left-radius: 2px; }
         .message.out { background-color: var(--message-out); align-self: flex-end; border-bottom-right-radius: 2px; }
@@ -6874,7 +5895,7 @@ $('messages-area')?.addEventListener('contextmenu', e => e.preventDefault());
         });
 
         socket.on('chat message', (data) => {
-            const text = decrypt(data.text);
+            /* removed duplicate definition */
             renderMsg(text, 'in', data.nick, data.isAudio);
         });
 
@@ -6958,6 +5979,60 @@ $('messages-area')?.addEventListener('contextmenu', e => e.preventDefault());
 
         msgInp.onkeydown = e => { if(e.key === 'Enter') sendMsg(); };
     </script>
-</body>
-</html>
 
+<script>
+// ===== FIXED OVERRIDES (merged from index_fixed) =====
+
+// Safe escape
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Voice playback fix (no overlapping audio)
+const __PLAY_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+const __PAUSE_ICO = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+
+function playV(btn){
+  const src = btn.dataset?.src || btn.getAttribute("data-src");
+  document.querySelectorAll('.voice-play[data-playing="1"]').forEach(b=>{
+    if(b!==btn){
+      b.dataset.playing='0';
+      b.innerHTML = __PLAY_ICO;
+      if(b._audio){ b._audio.pause(); b._audio.currentTime = 0; }
+    }
+  });
+  if(!btn._audio){
+    btn._audio = new Audio(src);
+    btn._audio.onended = ()=>{
+      btn.dataset.playing='0';
+      btn.innerHTML = __PLAY_ICO;
+    };
+  }
+  if(btn.dataset.playing === '1'){
+    btn._audio.pause();
+    btn.dataset.playing='0';
+    btn.innerHTML = __PLAY_ICO;
+  } else {
+    btn._audio.play();
+    btn.dataset.playing='1';
+    btn.innerHTML = __PAUSE_ICO;
+  }
+}
+
+// Emoji fix (prevent instant closing)
+function toggleEmoji(e){
+  if(e && e.stopPropagation) e.stopPropagation();
+  const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+  if(!p) return;
+  p.classList.toggle('on');
+}
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.emoji-picker') && !e.target.closest('.emoji-btn')){
+    const p = document.getElementById('ep') || document.querySelector('.emoji-picker');
+    if(p) p.classList.remove('on');
+  }
+});
+
+</script>
+
+</body>
+                                                                                                                                                                                            </html>
