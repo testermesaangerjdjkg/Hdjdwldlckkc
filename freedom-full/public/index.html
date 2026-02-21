@@ -1,1 +1,341 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Freedom</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </div>
+      <div class="auth-brand-text"><h1>Freedom</h1><p>Мессенджер без границ</p></div>
+    </div>
+    <div class="auth-seg">
+      <button class="auth-seg-btn active" onclick="authTab('login')">Войти</button>
+      <button class="auth-seg-btn" onclick="authTab('reg')">Регистрация</button>
+    </div>
+    <div id="lf">
+      <div class="field">
+        <div class="field-label"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Имя пользователя</div>
+        <div class="field-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <input type="text" id="lu" placeholder="username" autocomplete="username">
+      </div>
+      <div class="field">
+        <div class="field-label"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Пароль</div>
+        <div class="field-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <input type="password" id="lp" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="auth-btn" onclick="doLogin()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Войти
+      </button>
+      <div class="auth-err" id="le"></div>
+    </div>
+    <div id="rf" style="display:none">
+      <div class="field">
+        <div class="field-label">Отображаемое имя</div>
+        <div class="field-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <input type="text" id="rn" placeholder="Ваше имя">
+      </div>
+      <div class="field">
+        <div class="field-label">Логин</div>
+        <div class="field-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg></div>
+        <input type="text" id="ru" placeholder="username (мин. 3 символа, a-z 0-9 _)">
+      </div>
+      <div class="field">
+        <div class="field-label">Пароль</div>
+        <div class="field-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <input type="password" id="rp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doReg()">
+      </div>
+      <button class="auth-btn" onclick="doReg()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Создать аккаунт
+      </button>
+      <div class="auth-err" id="re"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-head">
+      <div class="me-av" id="me-av" onclick="openSett()"></div>
+      <div class="me-nm" id="me-nm" onclick="openSett()"></div>
+      <div class="sb-acts">
+        <button class="ib" title="Новый чат" onclick="goPeople()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button class="ib" title="Настройки" onclick="openSett()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="sb-search">
+      <div class="srch-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="srch-inp" id="srch-inp" placeholder="Поиск по имени или @username..." oninput="filterList(this.value)">
+      </div>
+    </div>
+    <div class="sb-tabs">
+      <button class="sb-tab active" id="tab-c" onclick="switchTab('chats',this)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Чаты
+      </button>
+      <button class="sb-tab" id="tab-p" onclick="switchTab('people',this)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Люди
+      </button>
+    </div>
+    <div class="chat-list" id="clist"></div>
+  </div>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area" id="chat-area">
+    <div id="no-chat" class="no-chat">
+      <div class="no-chat-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <h3>Freedom Messenger</h3>
+      <p>Выберите чат или найдите собеседника</p>
+    </div>
+    <div id="chat-view" style="display:none;flex-direction:column;height:100%">
+      <div class="chat-hd">
+        <button class="ib back-btn" onclick="closeMob()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </button>
+        <div class="ch-av" id="ch-av" onclick="showPM(currentChat)"></div>
+        <div class="ch-info" onclick="showPM(currentChat)">
+          <div class="ch-name" id="ch-name"></div>
+          <div class="ch-status" id="ch-status"></div>
+        </div>
+        <div class="ch-acts">
+          <button class="ib" title="Аудиозвонок" onclick="startCall('audio')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.5 16c.02.32.02.64 0 .96"/></svg>
+          </button>
+          <button class="ib" title="Видеозвонок" onclick="startCall('video')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </button>
+          <button class="ib" title="Профиль" onclick="showPM(currentChat)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="msgs" id="msgs" oncontextmenu="return false"></div>
+      <div class="ibar">
+        <div class="reply-strip" id="rs">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" style="flex-shrink:0"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+          <div class="rs-info"><div class="rs-nm" id="rs-nm"></div><div class="rs-tx" id="rs-tx"></div></div>
+          <button class="rs-x" onclick="cancelReply()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="img-strip" id="is"><img id="ithumb"><button class="img-strip-rm" onclick="rmImg()"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <div class="irow">
+          <button class="iab" title="Прикрепить фото" onclick="document.getElementById('fi').click()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <input type="file" id="fi" accept="image/*" style="display:none" onchange="handleImg(event)">
+          <div class="iwrap">
+            <textarea class="msg-inp" id="mi" placeholder="Написать сообщение..." rows="1" oninput="resize(this);onType()" onkeydown="mkey(event)"></textarea>
+            <button class="emoji-trigger" onclick="toggleEmoji()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </button>
+            <div class="emoji-picker" id="ep"></div>
+          </div>
+          <button class="mic-btn" id="mic-btn" onclick="toggleRec()" title="Голосовое сообщение">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <button class="send-btn" onclick="sendMsg()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div class="sett-panel" id="sp">
+  <div class="sett-hd">
+    <button class="ib" onclick="closeSett()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg></button>
+    <h2>Настройки</h2>
+  </div>
+  <div class="sett-body">
+    <div class="sett-profile">
+      <div class="sett-av-wrap" onclick="document.getElementById('avi').click()">
+        <div class="sett-av" id="sett-av"></div>
+        <div class="sett-av-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+      </div>
+      <input type="file" id="avi" accept="image/*" style="display:none" onchange="chgAv(event)">
+      <div class="sett-uname" id="sett-un"></div>
+      <div class="sett-handle" id="sett-hn"></div>
+    </div>
+
+    <div class="sett-grp">
+      <div class="sett-grp-title">Аккаунт</div>
+      <div class="sett-row" onclick="toggleEdit()">
+        <div class="sett-ico blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+        <div class="sett-row-body"><div class="sett-row-label">Редактировать профиль</div><div class="sett-row-sub" id="sett-nm-sub"></div></div>
+        <div class="sett-row-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="sett-row" onclick="openChangePwd()">
+        <div class="sett-ico red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="sett-row-body"><div class="sett-row-label">Сменить пароль</div><div class="sett-row-sub">Рекомендуется регулярно</div></div>
+        <div class="sett-row-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+    </div>
+
+    <div class="sett-edit-form" id="sef">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:12px">Редактирование профиля</div>
+      <input class="sett-inp" id="en" placeholder="Отображаемое имя">
+      <textarea class="sett-ta" id="eb" placeholder="Расскажите о себе..."></textarea>
+      <div class="btn-row">
+        <button class="btn-prim" onclick="saveProf()">Сохранить</button>
+        <button class="btn-sec" onclick="toggleEdit()">Отмена</button>
+      </div>
+    </div>
+
+    <div class="sett-grp">
+      <div class="sett-grp-title">Приватность</div>
+      <div class="sett-row">
+        <div class="sett-ico green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="sett-row-body"><div class="sett-row-label">Последний визит</div><div class="sett-row-sub">Кто видит время посещения</div></div>
+        <select class="priv-sel" id="priv-ls" onchange="savePriv('lastSeen',this.value)">
+          <option value="everyone">Все</option>
+          <option value="nobody">Никто</option>
+        </select>
+      </div>
+      <div class="sett-row">
+        <div class="sett-ico blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+        <div class="sett-row-body"><div class="sett-row-label">Фото профиля</div><div class="sett-row-sub">Кто видит ваш аватар</div></div>
+        <select class="priv-sel" id="priv-pp" onchange="savePriv('profilePhoto',this.value)">
+          <option value="everyone">Все</option>
+          <option value="nobody">Никто</option>
+        </select>
+      </div>
+      <div class="sett-row">
+        <div class="sett-ico green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="sett-row-body"><div class="sett-row-label">Статус онлайн</div><div class="sett-row-sub">Кто видит что вы онлайн</div></div>
+        <select class="priv-sel" id="priv-on" onchange="savePriv('online',this.value)">
+          <option value="everyone">Все</option>
+          <option value="nobody">Никто</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sett-grp">
+      <div class="sett-grp-title">Внешний вид</div>
+      <div class="sett-row" onclick="toggleTheme()">
+        <div class="sett-ico yellow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="theme-ico"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></div>
+        <div class="sett-row-body"><div class="sett-row-label">Тема оформления</div><div class="sett-row-sub" id="theme-sub">Тёмная</div></div>
+        <div class="sett-row-arrow">
+          <svg id="theme-arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+      <div class="sett-row" style="cursor:default">
+        <div class="sett-ico purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <div class="sett-row-body"><div class="sett-row-label">Уведомления</div><div class="sett-row-sub" id="notif-sub">Выключены</div></div>
+        <label class="sett-toggle" onclick="event.stopPropagation()">
+          <input type="checkbox" id="notif-chk" onchange="toggleNotif(this.checked)">
+          <span class="sett-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="sett-grp">
+      <button class="btn-danger" onclick="doLogout()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Выйти из аккаунта
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-over" id="pwd-modal" onclick="if(event.target===this)closePwdModal()">
+  <div class="modal-card">
+    <div class="modal-hd">
+      <div style="width:32px;height:32px;border-radius:10px;background:var(--red-dim);color:var(--red);display:flex;align-items:center;justify-content:center;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3>Сменить пароль</h3>
+      <button class="ib" onclick="closePwdModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="sett-err" id="pwd-err"></div>
+      <div class="sett-ok" id="pwd-ok"></div>
+      <input class="sett-inp" type="password" id="pwd-old" placeholder="Текущий пароль">
+      <input class="sett-inp" type="password" id="pwd-new" placeholder="Новый пароль (мин. 6 символов)">
+      <input class="sett-inp" type="password" id="pwd-new2" placeholder="Повторите новый пароль" style="margin-bottom:16px" onkeydown="if(event.key==='Enter')submitPwd()">
+      <div class="btn-row">
+        <button class="btn-prim" onclick="submitPwd()">Сохранить</button>
+        <button class="btn-sec" onclick="closePwdModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="pm-over" id="pmo" onclick="if(event.target===this)closePM()">
+  <div class="pm-card">
+    <div class="pm-banner">
+      <div class="pm-banner-grad"></div>
+      <button class="ib" onclick="closePM()" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.4)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="pm-body">
+      <div class="pm-av-row">
+        <div class="pm-av" id="pmav"></div>
+        <div class="pm-status" id="pmst"></div>
+      </div>
+      <div class="pm-name" id="pmnm"></div>
+      <div class="pm-handle" id="pmhn"></div>
+      <div class="pm-bio" id="pmbio"></div>
+      <div class="pm-btns">
+        <button class="pm-btn prim" onclick="chatFromPM()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Написать</button>
+        <button class="pm-btn sec" onclick="callFromPM('audio')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.5 16c.02.32.02.64 0 .96"/></svg>Звонок</button>
+        <button class="pm-btn sec" onclick="callFromPM('video')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Видео</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALL MODAL -->
+<div class="call-over" id="co">
+  <div class="vid-area" id="va"><video id="remoteVideo" autoplay playsinline></video><video id="localVideo" autoplay muted playsinline></video></div>
+  <div class="call-card">
+    <div class="call-av" id="cav"></div>
+    <div class="call-name" id="cnm"></div>
+    <div class="call-st" id="cst"></div>
+    <div class="call-timer" id="ctmr" style="display:none"></div>
+    <div class="call-btns" id="cbtns"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lb" onclick="this.classList.remove('on')"><img id="lbi"></div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx" id="ctx">
+  <div class="ctx-it" onclick="ctxReply()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>Ответить</div>
+  <div class="ctx-it" onclick="ctxCopy()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Копировать</div>
+  <div class="ctx-it danger" id="ctx-del" onclick="ctxDel()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>Удалить</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast" onclick="openToast()">
+  <div class="toast-av" id="tav"></div>
+  <div><div class="t-name" id="tnm"></div><div class="t-text" id="ttx"></div></div>
+</div>
+
+<script src="js/app-full.js"></script>
+</body>
+</html>
